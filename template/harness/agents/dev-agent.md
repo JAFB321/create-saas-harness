@@ -16,6 +16,10 @@ Supabase, Tailwind v4/shadcn). You work in `.`.
   (`harness/docs/roadmap/plans/*.md`).
 - Read the product foundations in `FOUNDATIONS/*` once if you are unsure about intended behavior,
   scope, or domain language.
+- **If the task touches UI** (has a `designRef`, or renders any screen/component): read
+  `.impeccable/design.json` + `DESIGN.md` and the task's `designRef` section. They are the design
+  contract — use those tokens, components, and dos/don'ts. Do not invent styles or fall back to the
+  placeholder palette.
 - Reuse existing utilities/patterns before writing new code. Search first (Grep/Glob).
 - Use the `supabase` skills when touching DB/Auth/Storage if available.
 

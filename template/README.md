@@ -18,8 +18,10 @@ backend, so you do need a Supabase URL + keys — use a hosted project or the lo
 ## Next steps
 
 1. Run **`/project-setup`** in your agent (Claude Code) to define your product. It writes
-   `FOUNDATIONS/*` and a full roadmap under `harness/docs/roadmap/`.
-2. Read **`INSTRUCTIONS.md`** for the daily build loop.
+   `FOUNDATIONS/*` + `PRODUCT.md`, commits a concrete design system (`.impeccable/design.json` +
+   `DESIGN.md` + real tokens in `globals.css`), and a full roadmap under `harness/docs/roadmap/`.
+2. Read **`INSTRUCTIONS.md`** for the daily build loop (it opens with a decision gate, then runs
+   autonomously).
 
 ## Scripts
 

@@ -15,6 +15,11 @@ next-env.d.ts
 supabase/.branches/
 supabase/.temp/
 
+# impeccable design skill: live-editing session state (the design system itself —
+# .impeccable/design.json, DESIGN.md, PRODUCT.md — IS committed as the UI source of truth)
+.impeccable/live/
+.impeccable/critique/
+
 # test artifacts
 test-results/
 playwright-report/

@@ -16,9 +16,13 @@ The end-to-end experience it delivers:
 1. `npx create-saas-harness` → asks essentials (name, dir, **Stripe|MercadoPago**, package manager),
    copies the template, prunes the unchosen payment adapter, installs, makes the **first commit**.
 2. In the user's agent: `/project-setup` runs a 7-round product-discovery interview, then spawns
-   `foundations-synthesizer` (writes `FOUNDATIONS/*`) and `roadmap-architect` (writes an executable
-   `harness/docs/roadmap/mvp-*.json` + plans). No MVP task is executed during setup.
-3. Daily build loop via the harness: `/session-start` → work the roadmap → `/verify` →
+   `foundations-synthesizer` (writes `FOUNDATIONS/*` + `PRODUCT.md`), `design-architect` (commits a
+   concrete design system via the `impeccable` skill — `.impeccable/design.json` + `DESIGN.md` + real
+   tokens in `globals.css`), and `roadmap-architect` (writes an executable
+   `harness/docs/roadmap/mvp-*.json` + plans, each MVP carrying `openQuestions`). No MVP task is
+   executed during setup.
+3. Daily build loop via the harness: `/session-start` (opens with a front-loaded decision gate that
+   asks the MVP's `openQuestions`, then runs autonomously) → work the roadmap → `/verify` →
    `/session-wrap`.
 
 It was **derived from the `photo.sh` project** (a real Next.js+Supabase SaaS with this harness),
@@ -38,7 +42,9 @@ generalized to a neutral domain and English.
 | License | MIT | Max adoption. |
 | Example domain | Neutral SaaS shell: auth + dashboard + settings + billing/tiers + one CRUD resource (`items`) with RLS | Shows the full pattern without biasing the domain; MVP-1 of the generated roadmap specializes it. |
 | Roadmap generation | MVPs → **executable tasks** + plans | A dev-agent can pick up tasks 0→100. |
-| Setup scope | Only `FOUNDATIONS/` + roadmap + plans (no app code touched) | Clean first commit; nothing built until the first `/session-start`. |
+| Setup scope | `FOUNDATIONS/` + `PRODUCT.md` + design system + roadmap + plans (design-architect applies real tokens to `globals.css`/base components; no feature code) | The look is committed day one; feature code waits for the first `/session-start`. |
+| Design system | A committed `.impeccable/design.json` + `DESIGN.md` (via the vendored `impeccable` skill); UI tasks read it as a contract | Kills the generic placeholder look; the #1 reason generated UIs felt off. |
+| Decision handling | Unresolved fine/blocking calls become each MVP's `openQuestions`, asked **up front** at `/session-start`, then autonomous | "Ask everything at the start, then leave it working" — no mid-run interruptions. |
 | Persistence | `FOUNDATIONS/_interview-raw.md` (transcript) + `_decisions-log.md` | Traceability of why the roadmap is shaped that way. |
 | CI/CD | GitHub Actions (verify / e2e / migrations) + Vercel + Supabase | Ship-ready. |
 
@@ -53,8 +59,8 @@ template/
   packages/integrations/ mock-first Payment/Email/Storage + Stripe/MercadoPago/Resend/S3 adapters + factory + settleOrder (idempotent)
   packages/config/    shared tsconfig/eslint/prettier/tailwind
   supabase/           migrations (schema + RLS) + config.toml
-  harness/            workflow.md · agents/ (dev-agent, dev-agent-pro, verifier, reviewer, doc-keeper, foundations-synthesizer, roadmap-architect) · commands/ · skills/project-setup · scripts/ · docs/{state,roadmap}
-  FOUNDATIONS/        README + spec (populated by /project-setup)
+  harness/            workflow.md · agents/ (dev-agent, dev-agent-pro, verifier, reviewer, doc-keeper, foundations-synthesizer, design-architect, roadmap-architect) · commands/ · skills/{project-setup, impeccable} · scripts/ · docs/{state,roadmap}
+  FOUNDATIONS/        README + spec (populated by /project-setup; also writes root PRODUCT.md + DESIGN.md + .impeccable/)
   CLAUDE.md · INSTRUCTIONS.md · README.md
 ```
 

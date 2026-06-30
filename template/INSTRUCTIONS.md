@@ -6,7 +6,9 @@ build, verify, and review your code in a tight loop. You drive; the agents do th
 ## First time?
 
 1. Run **`/project-setup`** in your agent. It interviews you (~10-15 min) and writes:
-   - `FOUNDATIONS/*` — your product's source of truth.
+   - `FOUNDATIONS/*` + `PRODUCT.md` — your product's source of truth.
+   - A committed design system — `.impeccable/design.json` + `DESIGN.md` + real tokens in
+     `apps/web/app/globals.css` (the UI contract; no generic placeholder look).
    - `harness/docs/roadmap/mvp-*.json` — your executable roadmap (see it: `pnpm roadmap`).
 2. That's it for planning. Nothing is built yet.
 
@@ -14,8 +16,10 @@ build, verify, and review your code in a tight loop. You drive; the agents do th
 
 Each work session is four steps:
 
-1. **`/session-start`** — loads context, brings the env up, runs a baseline check. Tells you the next
-   task. Don't start coding until you confirm.
+1. **`/session-start`** — opens with a **decision gate**: it asks you the active MVP's open questions
+   (production wiring, pricing, design choices) up front, all at once. Answer them, and from there it
+   runs autonomously. Then it loads context, brings the env up, and runs a baseline check. Don't start
+   coding until you confirm.
 2. **Work the roadmap** — say "go" and the orchestrator picks the next task, delegates it to an
    implementer agent, then a `verifier` runs the tests and a `reviewer` checks correctness.
 3. **`/verify`** — re-run verification any time you want proof something works.
@@ -39,7 +43,8 @@ real payment/email/storage keys later when you want them. See `.env.example`.
 
 | You want…                 | Look in                                |
 | ------------------------- | -------------------------------------- |
-| Why/what of the product   | `FOUNDATIONS/`                         |
+| Why/what of the product   | `FOUNDATIONS/` + `PRODUCT.md`          |
+| The design system (UI)    | `.impeccable/design.json` + `DESIGN.md` |
 | The plan / progress       | `harness/docs/roadmap/` (`pnpm roadmap`) |
 | How the harness works     | `harness/docs/workflow.md`             |
 | What the code is today    | `harness/docs/state/`                  |

@@ -3,9 +3,11 @@
 This folder is your product's **source of truth** — the why and what behind everything the agents
 build. It is written **for you, once**, by the `/project-setup` interview and rarely changes after.
 
-> Empty right now? Run `/project-setup` in your agent. It interviews you across 7 rounds and then a
-> `foundations-synthesizer` agent fills this folder, followed by a `roadmap-architect` agent that
-> turns it into an executable roadmap (`harness/docs/roadmap/mvp-*.json` + `plans/*.md`).
+> Empty right now? Run `/project-setup` in your agent. It interviews you across 7 rounds, then a
+> `foundations-synthesizer` agent fills this folder (+ a root `PRODUCT.md`), a `design-architect`
+> agent commits a concrete design system (`.impeccable/design.json` + `DESIGN.md` + real tokens), and
+> a `roadmap-architect` agent turns it all into an executable roadmap
+> (`harness/docs/roadmap/mvp-*.json` + `plans/*.md`, incl. `plans/mvp-1-design.md`).
 
 ## The files (standardized)
 
@@ -31,7 +33,11 @@ Every file has a YAML header (`title`, `status`, `last_updated`, `source`) and s
 ## How agents use it
 
 - `dev-agent` / `dev-agent-pro` read it when unsure about intended behavior, scope, or domain language.
-- `roadmap-architect` reads ALL of it to generate the roadmap.
+- `foundations-synthesizer` also distills `06`/`09`/`02`/`00`/`01`/`05` into the root `PRODUCT.md`
+  (the `impeccable` design skill's context bridge).
+- `design-architect` reads `06-ux-style.md` + `09-inspirations.md` (via `PRODUCT.md`) to commit the
+  design system.
+- `roadmap-architect` reads ALL of it (+ `DESIGN.md`) to generate the roadmap.
 - `reviewer` checks implementations against `03-critical-features.md` acceptance criteria.
 
 Keep it true. If the product direction changes, update the relevant file and add an entry to

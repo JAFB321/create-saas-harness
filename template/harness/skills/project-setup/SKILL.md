@@ -1,6 +1,6 @@
 ---
 name: project-setup
-description: Guided product-discovery interview that turns a freshly scaffolded create-saas-harness project into a complete plan. Use right after scaffolding (or whenever the user says "run the project setup" / "/project-setup"). Conducts a 7-round interview, then spawns two agents to write FOUNDATIONS/* and a fully executable roadmap. Does NOT execute any MVP task.
+description: Guided product-discovery interview that turns a freshly scaffolded create-saas-harness project into a complete plan. Use right after scaffolding (or whenever the user says "run the project setup" / "/project-setup"). Conducts a 7-round interview, then spawns three agents to write FOUNDATIONS/* + PRODUCT.md, commit a concrete design system (impeccable), and write a fully executable roadmap. Does NOT execute any MVP task.
 ---
 
 # Project setup — guided discovery
@@ -34,6 +34,11 @@ Read this whole file before starting. Then run the steps in order.
 - It's a conversation: if an answer is vague or contradicts an earlier one, ask a quick follow-up.
 - The user can always say "skip" or "you decide" — record that and pick a sensible default, noting it
   in `_decisions-log.md`.
+- **Stay strategic — don't over-ask.** Keep these rounds to the product-shaping essentials. Fine-
+  grained or potentially blocking details that don't change the foundations (exact prices, the cron
+  vendor, screen-level choices, final brand hue, etc.) are NOT resolved here: the `roadmap-architect`
+  captures them as each MVP's `openQuestions`, and they're answered up front at the first
+  `/session-start` (the decision gate), then execution runs autonomously.
 
 ## The 7 rounds
 
@@ -82,6 +87,9 @@ Guiding prompt to show: *"Paste URLs or names. UI: 'looks like Linear', 'onboard
 Business: 'monetizes like Notion'. Images/screenshots welcome — describe them if you can't paste."*
 Capture two lists: UI/style inspirations and business-model inspirations, each with a note on what to
 **emulate** and what to **avoid**.
+Also ask: *"Do you have an existing design system to match (a `design.json` / token set / a sibling
+product whose look you want to reuse)? Paste it or give the path."* If yes, record the path/tokens in
+`_decisions-log.md` — the `design-architect` will adapt from it instead of generating fresh.
 
 ### Round 7 — Dev profile
 
@@ -90,32 +98,45 @@ Guiding prompt to show: *"e.g. 'strong in React/TypeScript, weak in SQL/RLS and 
 shipped a SaaS before'. Be honest — this changes how much hand-holding the tasks include."*
 Cover: stack familiarity, experience level, weak spots, time availability, solo or team.
 
-## After the interview — generate (two agents, in sequence)
+## After the interview — generate (three agents, in sequence)
 
 When the 7 rounds are done and the transcript is saved:
 
 1. **Spawn `foundations-synthesizer` (Opus)** via the Task tool. Pass it:
    - the full interview transcript (`FOUNDATIONS/_interview-raw.md`),
    - the chosen payments provider,
-   - an instruction to write every FOUNDATIONS file per the spec in its agent definition.
+   - an instruction to write every FOUNDATIONS file **and `PRODUCT.md`** per its agent definition.
    Wait for it to finish. It returns a summary of files written.
 
-2. **Spawn `roadmap-architect` (Opus)** via the Task tool. Pass it:
-   - "read all of FOUNDATIONS/* and generate the roadmap",
-   - the dev profile (so it calibrates task granularity and guidance).
+2. **Spawn `design-architect` (Opus)** via the Task tool. Pass it:
+   - "read PRODUCT.md + FOUNDATIONS/06 + 09 and commit a concrete design system via the impeccable
+     skill (.impeccable/design.json + DESIGN.md + real tokens in globals.css + base components)",
+   - any existing design system to match (path/tokens captured in round 6 / the decisions log).
+   Wait for it to finish. It returns the design character + files written + a short list of **design
+   decisions to confirm** (with applied defaults). Carry that list into step 3.
+
+3. **Spawn `roadmap-architect` (Opus)** via the Task tool. Pass it:
+   - "read all of FOUNDATIONS/* + DESIGN.md and generate the roadmap",
+   - the dev profile (so it calibrates task granularity and guidance),
+   - the design-architect's **design decisions to confirm** (so it folds them into MVP-1's
+     `openQuestions`).
    Wait for it to finish. It returns the MVP/sprint/task counts it generated.
 
-Run them **sequentially** (roadmap depends on foundations). Do not run any roadmap task.
+Run them **sequentially** (design depends on foundations; roadmap depends on both). Do not run any
+roadmap task.
 
 ## Final output to the user (brief, simple)
 
 Print a short summary — bullets or a small table, plain language:
 
-- ✅ What just happened (FOUNDATIONS written, N MVPs / M tasks in the roadmap).
+- ✅ What just happened (FOUNDATIONS + PRODUCT.md written, design system committed, N MVPs / M tasks).
+- 🎨 The design system: `.impeccable/design.json` + `DESIGN.md` + real tokens in
+  `apps/web/app/globals.css` (one line on the character/palette).
 - 📁 Where to look: `FOUNDATIONS/` (your product truth), `harness/docs/roadmap/` (the plan;
   open the dashboard with `pnpm roadmap`).
 - ▶️ **Next step: read `INSTRUCTIONS.md`** — it explains the daily loop (`/session-start` → work →
   `/verify` → `/session-wrap`) in 4 bullets.
-- A one-line note that nothing has been built yet — the first `/session-start` begins execution.
+- A one-line note: nothing is built yet. The first `/session-start` opens with a **decision gate** —
+  it asks you the MVP's open questions up front, then runs autonomously.
 
 Keep it under ~15 lines. Don't dump the roadmap contents.
