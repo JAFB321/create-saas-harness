@@ -14,6 +14,10 @@ app code, migrations, or run any task.
 - All of `FOUNDATIONS/*` (read every file). `11-roadmap-outline.md` is your skeleton;
   `03-critical-features.md` defines the must-haves and their acceptance criteria;
   `10-dev-team.md` tells you how much guidance and verification each task needs.
+- The committed design system: `DESIGN.md` + `.impeccable/design.json` (written by
+  `design-architect`). UI tasks reference these; you do not redesign.
+- The **design decisions to confirm** the orchestrator passes you (defaults the design-architect
+  applied). Fold each into MVP-1's `openQuestions`.
 
 ## Output
 
@@ -21,19 +25,33 @@ Write to `harness/docs/roadmap/`:
 
 - `mvp-1.json`, `mvp-2.json`, … — one per MVP from the outline. Follow the schema in
   `harness/docs/workflow.md` exactly (English field names: `mvp`, `objective`, `deadline`,
-  `availability`, `status`, `scope`{`included`,`excluded`}, `sprints`[{`id`,`title`,`estimate`,
-  `detail?`,`goals`[{`id`,`title`,`detail?`,`tasks`[{`id`,`desc`,`area`,`status`,`verify`}]}]}]).
+  `availability`, `status`, `scope`{`included`,`excluded`}, `openQuestions`[…], `sprints`[{`id`,
+  `title`,`estimate`,`detail?`,`goals`[{`id`,`title`,`detail?`,`tasks`[{`id`,`desc`,`area`,
+  `designRef?`,`status`,`verify`}]}]}]).
 - `harness/docs/roadmap/plans/<mvp-id>-<slug>.md` — a detail plan for any sprint/goal that is complex
   enough to need one (data model, sequence, gotchas, decisions). Reference it from the JSON via the
   `detail` field (e.g. `"detail": "plans/mvp-1-auth.md"`).
+- `harness/docs/roadmap/plans/mvp-1-design.md` — **always** a design plan for MVP-1: screen by screen
+  (layout, which `.impeccable/design.json` components, states empty/loading/error, copy/tone),
+  anchored to `DESIGN.md`. UI tasks point their `designRef` at sections of this file.
 
 ## Rules for good tasks
 
-- **MVP-1 is always "specialize the neutral shell"**: rename the example CRUD resource to the real
-  core entity, define the real tables + RLS, wire auth/roles, and replace placeholder copy. Only then
-  do feature MVPs follow. This connects the running shell to the real domain on day one.
+- **MVP-1 is always "specialize the neutral shell" — in data AND look.** Its first sprint is
+  **S0 — Design foundation**: apply the committed design system to the running shell (real tokens in
+  `apps/web/app/globals.css`, fonts, the base `components/ui/*` primitives in line with
+  `.impeccable/design.json`) and replace placeholder copy/branding. Only then the domain sprint
+  (rename the example resource, real tables + RLS, wire auth/roles) and feature sprints follow. This
+  connects the running shell to the real domain AND the real brand on day one. (The design-architect
+  may have already applied tokens; S0's job is to verify, finish, and propagate them across the shell
+  — never leave the placeholder palette.)
 - Tasks are **atomic and executable**: one clear outcome, the probable files/areas, and a concrete
   `verify`. A dev-agent should be able to start without asking questions.
+- **UI tasks carry a `designRef` and concrete visual acceptance.** Any task with a visible surface
+  (`area: "app"` rendering a screen/component) must set `designRef` to the relevant section of
+  `plans/mvp-1-design.md` / the `.impeccable/design.json` component, and its `verify.desc` must state
+  concrete visual acceptance (states: empty/loading/error; responsive; `prefers-reduced-motion`).
+  Never specify UI as just "clean, elevated UX" — that degrades to a generic look.
 - Every task has a `verify` object (never a string): `type` ∈ `unit | e2e | manual`, with `spec`
   (a concrete test path you choose, even if the test doesn't exist yet — the dev-agent writes it) for
   `unit`/`e2e`, and a readable `desc`. Prefer `unit`/`e2e` over `manual`; reserve `manual` for things
@@ -47,17 +65,26 @@ Write to `harness/docs/roadmap/`:
   keep tasks lean.
 - Sizing: aim for tasks of a few hours each; group into goals; group goals into sprints; group sprints
   into an MVP. Don't make a 40-task mega-MVP — split into multiple `mvp-*.json`.
+- **Accrue `openQuestions` per MVP — don't bake unresolved decisions into tasks.** Every fine-grained
+  or blocking decision you can't resolve from `FOUNDATIONS/*` goes into that MVP's `openQuestions`
+  with a sensible `default`, a `severity` (`blocking` = the gate must ask; `default-ok` = proceed on
+  default), and an `area`. Cover: production wiring (cron/scheduler vendor, provider keys), exact
+  business numbers (prices, commission rates/tiers), brand/design identity (carry over the
+  design-architect's decisions-to-confirm), and ambiguous screen-level choices. These are resolved up
+  front at `/session-start`; tasks then execute against committed answers, not guesses.
 
 ## Process
 
-1. Read all FOUNDATIONS files.
+1. Read all FOUNDATIONS files, plus `DESIGN.md` + `.impeccable/design.json`.
 2. Draft the MVP list from `11-roadmap-outline.md` (adjust if the foundations imply a better order;
    note why in the MVP `objective`).
-3. For each MVP, write its JSON with sprints → goals → tasks. Write `plans/*.md` for the complex ones.
+3. For each MVP, write its JSON with sprints → goals → tasks, plus its `openQuestions`. MVP-1 leads
+   with the **S0 — Design foundation** sprint. Write `plans/*.md` for the complex sprints/goals, and
+   **always** `plans/mvp-1-design.md`. Set `designRef` on every UI task.
 4. Validate every JSON parses and matches the schema. Use `node -e` or a quick `Bash` check to
    confirm valid JSON for each file you wrote.
 
 ## When done
 
 Return a condensed summary: how many MVPs, sprints, and tasks you generated; which got detail plans;
-and any scope you deferred or flagged for the human to decide.
+how many `openQuestions` each MVP carries (and how many are `blocking`); and any scope you deferred.

@@ -1,6 +1,6 @@
 ---
-description: Session start ritual — load context, bring the env up, verify baseline
-allowed-tools: Bash, Read
+description: Session start ritual — load context, run the decision gate, bring the env up, verify baseline
+allowed-tools: Bash, Read, Edit, AskUserQuestion
 ---
 
 Run the session start ritual defined in `harness/docs/workflow.md`.
@@ -34,10 +34,23 @@ Steps:
    starting from an empty roadmap (or suggest running `/project-setup` first). Identify the active
    sprint (first with `todo`/`doing` tasks) and the **next task** (first `todo` in order).
 4. Read the detail plan (`detail`) for that task/goal/sprint if it exists, in
-   `harness/docs/roadmap/plans/`.
-5. Bring the env up: `pnpm up` (= `bash harness/scripts/dev-up.sh`).
-6. Baseline smoke: run `pnpm e2e` (or warn if the test foundation does not exist yet).
+   `harness/docs/roadmap/plans/`. If the next task has a `designRef`, read that design plan section
+   and `.impeccable/design.json` so UI work has its contract loaded.
+5. **Front-loaded decision gate.** Read the active MVP's `openQuestions`. If any have
+   `answered: false`, ask the human **all of them in one pass** before doing anything else:
+   - Group by `area`; use `AskUserQuestion` for questions with `options`, plain conversational
+     questions otherwise. Always show each question's `default` so "you decide" is easy.
+   - Persist each result: `Edit` the MVP JSON to set that question's `answer` and `answered: true`,
+     and append one line per decision to `FOUNDATIONS/_decisions-log.md`
+     (`- <question> → <answer> (session-start gate)`).
+   - `severity: "blocking"` questions **must** be answered before execution. For `default-ok`, an
+     empty/"you decide" reply records the `default`.
+   - If every question is already answered, say so and continue — never re-ask.
+   This is the single interrogation point: after the gate, execution runs autonomously (workflow.md
+   hard rule 5).
+6. Bring the env up: `pnpm up` (= `bash harness/scripts/dev-up.sh`).
+7. Baseline smoke: run `pnpm e2e` (or warn if the test foundation does not exist yet).
 
-At the end, report briefly: worktree/port if applicable, active sprint, current %, the suggested
-next task with its `verify` (`type` + `desc`), and whether the baseline is green. Do NOT start
-implementing until the human confirms.
+At the end, report briefly: worktree/port if applicable, any decisions just captured at the gate,
+active sprint, current %, the suggested next task with its `verify` (`type` + `desc`), and whether the
+baseline is green. Do NOT start implementing until the human confirms.

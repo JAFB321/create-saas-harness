@@ -57,6 +57,34 @@ source: project-setup interview
 
 Leave `_interview-raw.md` as-is (don't rewrite it).
 
+## Also write `PRODUCT.md` (repo root) — the design pipeline's context bridge
+
+The `impeccable` design skill (used next by the `design-architect`) reads a root `PRODUCT.md`, not
+`FOUNDATIONS/*`. Write one, derived from the foundations you just wrote, with these exact sections:
+
+```markdown
+# Product
+
+## Register
+
+product   <!-- "product" for app/dashboard/tool UI (design SERVES the product); "brand" only if this is landing/marketing-first (design IS the product). Pick by what the FIRST shippable cut mostly is. -->
+
+## Users
+
+<!-- distilled from 02-users-personas.md: primary + secondary, who they are, job-to-be-done, context/devices -->
+
+## Product Purpose
+
+<!-- distilled from 00-overview.md + 01-vision-scope.md: what it does, the success condition -->
+
+## Brand Personality
+
+<!-- distilled from 06-ux-style.md + 09-inspirations.md: tone/vibe in a few sentences, the references to
+     emulate and the looks to avoid (e.g. "elevated like <family product>", "avoid generic-LMS clutter") -->
+```
+
+Keep it tight (~1 page). It is a faithful projection of FOUNDATIONS, not new product decisions.
+
 ## When done
 
 Return a condensed summary: the list of files written and any important assumptions you made (so the

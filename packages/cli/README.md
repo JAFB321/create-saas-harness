@@ -11,7 +11,8 @@ It asks for a project name, target directory, payments provider (**Stripe** or *
 package manager; copies the template; wires the harness; prunes the unchosen payment adapter; installs
 deps; and makes the **first commit**.
 
-Then, in your agent: run `/project-setup` to define your product (it writes `FOUNDATIONS/*` and an
-executable roadmap), and read `INSTRUCTIONS.md` for the daily loop.
+Then, in your agent: run `/project-setup` to define your product (it writes `FOUNDATIONS/*` +
+`PRODUCT.md`, commits a concrete design system, and an executable roadmap), and read `INSTRUCTIONS.md`
+for the daily loop.
 
 See the [main repo](https://github.com/) for the full story. MIT licensed.

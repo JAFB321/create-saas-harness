@@ -39,6 +39,12 @@ operator's memory.
    confirmation of behavior.
 3. **Never mark `done` by assertion.** "I implemented X" ≠ "X works". Always run the verification.
 4. **Never commit without an explicit human request.** Leave changes staged.
+5. **Ask everything up front, then run autonomous.** All decisions the human must make for the active
+   MVP are resolved at `/session-start` via the decision gate (below). Once the gate is clear, the
+   execution loop runs to completion **without stopping to ask**. If a NEW blocking unknown surfaces
+   mid-run, do not interrupt: mark that task `blocked` with a note, append the question to the MVP's
+   `openQuestions` (`answered: false`), and continue with other tasks. It gets resolved at the next
+   `/session-start`.
 
 ## Start ritual (`/session-start`)
 
@@ -46,9 +52,19 @@ operator's memory.
 2. Read `harness/docs/roadmap/mvp-1.json` → identify the active sprint (first with `todo`/`doing`
    tasks) and the next task.
 3. `git log --oneline -5` — context from the last session.
-4. `bash harness/scripts/dev-up.sh` (`pnpm up`) — bring the environment up deterministically. No
+4. **Front-loaded decision gate.** If the active MVP has any `openQuestions` with `answered: false`,
+   ask the human **all of them at once** (group by `area`; use AskUserQuestion for choices, plain
+   questions otherwise — always show the `default`). Write each `answer` + `answered: true` back into
+   the MVP JSON and append a line per decision to `FOUNDATIONS/_decisions-log.md`. Only `blocking`
+   questions strictly require an answer; for `default-ok`, an empty/"you decide" reply records the
+   default. **Do not start executing until every `blocking` question is answered.** If all questions
+   are already answered, skip straight ahead — no re-asking.
+5. `bash harness/scripts/dev-up.sh` (`pnpm up`) — bring the environment up deterministically. No
    manual steps.
-5. Baseline smoke: `pnpm e2e` (or the critical subset) to confirm we start from green.
+6. Baseline smoke: `pnpm e2e` (or the critical subset) to confirm we start from green.
+
+> Why front-loaded: the daily loop is "open the session, answer everything it needs, then leave it
+> working." The gate is the single interrogation point; everything after it is autonomous.
 
 ## Execution loop (orchestrator–workers)
 
@@ -174,6 +190,19 @@ One file per MVP (`mvp-1`, `mvp-2`, …). The dashboard discovers them by scanni
   "availability": "...",
   "status": "todo | in_progress | done",
   "scope": { "included": ["..."], "excluded": ["..."] },
+  "openQuestions": [
+    {
+      "id": "q1",
+      "question": "Human-readable decision this MVP needs before/while building.",
+      "why": "What breaks or is ambiguous without an answer.",
+      "options": ["option A", "option B"], // optional; omit for free-form
+      "default": "option A", // the sensible default the agent would pick
+      "severity": "blocking | default-ok", // blocking = must ask; default-ok = proceed on default
+      "area": "app | db | infra | core | design | business",
+      "answered": false,
+      "answer": null
+    }
+  ],
   "sprints": [
     {
       "id": "s1",
@@ -190,6 +219,7 @@ One file per MVP (`mvp-1`, `mvp-2`, …). The dashboard discovers them by scanni
               "id": "s1-g1-t1",
               "desc": "...",
               "area": "app",
+              "designRef": "plans/mvp-1-design.md#public-course-page", // required for UI tasks
               "status": "todo | doing | done | blocked",
               "verify": {
                 "type": "unit | e2e | manual",
@@ -211,3 +241,21 @@ Rules for the `verify` field (always an object, never a string):
 - `type: "unit"` → `spec` = path to the unit test file.
 - `type: "e2e"` → `spec` = path to the e2e test file.
 - `desc` = human-readable criterion of what is verified (used by the dashboard and the verifier).
+
+Rules for `designRef` (UI tasks only):
+
+- Any task with a visible UI surface (`area: "app"` that renders a screen/component) **must** carry
+  a `designRef` pointing at the design plan section and/or the `.impeccable/design.json` component it
+  implements. The implementer reads it as a contract — tokens, components, dos/don'ts.
+- The task's `verify.desc` must include **concrete visual acceptance** (states: empty/loading/error,
+  responsive, `prefers-reduced-motion`), not just "clean UX".
+
+Rules for `openQuestions` (MVP level):
+
+- The roadmap-architect accrues here every fine-grained or blocking decision it could NOT resolve
+  from `FOUNDATIONS/*` — production wiring (cron vendor, provider keys), exact business numbers
+  (pricing/commission), brand/design identity, and screen-level choices.
+- Each gets a sensible `default` and a `severity`. `blocking` = the gate must ask before executing;
+  `default-ok` = the agent may proceed on the default but still surfaces it.
+- These are resolved **up front** at `/session-start` (see "Front-loaded decision gate"), then
+  execution runs autonomously. Never block mid-run to ask the human (see hard rule 5).

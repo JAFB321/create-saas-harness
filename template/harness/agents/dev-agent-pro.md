@@ -26,6 +26,10 @@ If the task is small (1-2 files, simple UI, trivial CRUD) **you are not the one*
 - Read the relevant state docs in `harness/docs/state/`: `app.md`, `database.md`, `testing.md`,
   `infra.md`. And the detail plan if the task references one (`harness/docs/roadmap/plans/*.md`).
 - Read `FOUNDATIONS/*` for intended behavior, scope, and domain language.
+- **If the task touches UI** (has a `designRef`, or renders any screen/component): read
+  `.impeccable/design.json` + `DESIGN.md` and the task's `designRef` section. They are the design
+  contract — use those tokens, components, and dos/don'ts. Do not invent styles or fall back to the
+  placeholder palette.
 - Reuse existing utilities/patterns before writing new code. Search first (Grep/Glob).
 - Use the `supabase` skills when touching DB/Auth/Storage if available.
 

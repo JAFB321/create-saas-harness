@@ -8,6 +8,29 @@
     "included": ["feature A included in this MVP", "feature B"],
     "excluded": ["feature deferred to a later MVP"]
   },
+  "openQuestions": [
+    {
+      "id": "q1",
+      "question": "Example blocking decision the human must make before/while this MVP is built.",
+      "why": "What is ambiguous or breaks without an answer.",
+      "options": ["option A", "option B"],
+      "default": "option A",
+      "severity": "blocking",
+      "area": "infra",
+      "answered": false,
+      "answer": null
+    },
+    {
+      "id": "q2",
+      "question": "Example fine-grained decision the agent can default but should surface.",
+      "why": "Why it matters to get right eventually.",
+      "default": "the sensible default",
+      "severity": "default-ok",
+      "area": "design",
+      "answered": false,
+      "answer": null
+    }
+  ],
   "sprints": [
     {
       "id": "s1",
@@ -32,13 +55,14 @@
             },
             {
               "id": "s1-g1-t2",
-              "desc": "Task with end-to-end verification.",
+              "desc": "UI task with end-to-end verification (note the designRef on UI tasks).",
               "area": "app",
+              "designRef": "plans/s1-design.md#some-screen",
               "status": "todo",
               "verify": {
                 "type": "e2e",
                 "spec": "e2e/example.spec.ts",
-                "desc": "What UI/API flow the e2e validates."
+                "desc": "What UI/API flow the e2e validates, incl. concrete visual acceptance (empty/loading/error states, responsive, reduced-motion)."
               }
             },
             {
