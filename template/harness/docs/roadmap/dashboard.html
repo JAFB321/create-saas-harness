@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Roadmap</title>
+    <style>
+      :root {
+        --bg: #0f1115;
+        --panel: #171a21;
+        --panel-2: #1e222b;
+        --border: #2a2f3a;
+        --text: #e6e8ec;
+        --muted: #8b93a1;
+        --accent: #4f8cff;
+        --todo: #6b7280;
+        --doing: #f59e0b;
+        --done: #22c55e;
+        --blocked: #ef4444;
+        --radius: 12px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14px/1.5 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        min-height: 100vh;
+      }
+      .app {
+        display: flex;
+        align-items: flex-start;
+      }
+      .sidebar {
+        width: 240px;
+        flex-shrink: 0;
+        align-self: stretch;
+        background: var(--panel);
+        border-right: 1px solid var(--border);
+        padding: 24px 16px;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      .sidebar h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .sidebar .sub {
+        color: var(--muted);
+        font-size: 11px;
+        margin-bottom: 20px;
+      }
+      #mvp-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .nav-item {
+        text-align: left;
+        cursor: pointer;
+        width: 100%;
+        background: var(--panel-2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        color: var(--text);
+        font: inherit;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .nav-item:hover {
+        border-color: var(--muted);
+      }
+      .nav-item.active {
+        border-color: var(--accent);
+        background: rgba(79, 140, 255, 0.1);
+      }
+      .nav-item-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .nav-item-head .name {
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .nav-item .bar {
+        margin: 0;
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 32px 24px 64px;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: var(--muted);
+        margin-bottom: 24px;
+      }
+      .pill {
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 99px;
+        background: var(--panel-2);
+        color: var(--muted);
+        border: 1px solid var(--border);
+      }
+      .pill.todo {
+        color: var(--todo);
+        border-color: var(--todo);
+      }
+      .pill.in_progress {
+        color: var(--doing);
+        border-color: var(--doing);
+      }
+      .pill.done {
+        color: var(--done);
+        border-color: var(--done);
+      }
+      .bar {
+        height: 8px;
+        background: var(--panel-2);
+        border-radius: 99px;
+        overflow: hidden;
+        margin: 6px 0;
+      }
+      .bar > span {
+        display: block;
+        height: 100%;
+        background: var(--done);
+        transition: width 0.3s;
+      }
+      .bar-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .bar-row .bar {
+        flex: 1;
+      }
+      .pct {
+        font-variant-numeric: tabular-nums;
+        color: var(--muted);
+        min-width: 42px;
+        text-align: right;
+      }
+      details {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin: 10px 0;
+        background: var(--panel-2);
+      }
+      summary {
+        cursor: pointer;
+        padding: 12px 14px;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      summary::-webkit-details-marker {
+        display: none;
+      }
+      summary .chev {
+        color: var(--muted);
+        transition: transform 0.2s;
+      }
+      details[open] > summary .chev {
+        transform: rotate(90deg);
+      }
+      .s-title {
+        font-weight: 600;
+        flex: 1;
+      }
+      .goal {
+        padding: 4px 14px 12px 28px;
+      }
+      .goal-title {
+        font-weight: 600;
+        color: var(--text);
+        margin: 12px 0 6px;
+        font-size: 13px;
+      }
+      .goal-title a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 400;
+        font-size: 11px;
+        margin-left: 8px;
+      }
+      .task {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 5px 0;
+        border-top: 1px solid var(--border);
+      }
+      .task:first-of-type {
+        border-top: none;
+      }
+      .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 99px;
+        margin-top: 6px;
+        flex-shrink: 0;
+      }
+      .dot.todo {
+        background: var(--todo);
+      }
+      .dot.doing {
+        background: var(--doing);
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+      }
+      .dot.done {
+        background: var(--done);
+      }
+      .dot.blocked {
+        background: var(--blocked);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+      }
+      .task.done .desc {
+        color: var(--muted);
+        text-decoration: line-through;
+        text-decoration-color: var(--border);
+      }
+      .desc {
+        flex: 1;
+      }
+      .tag {
+        font-size: 10px;
+        padding: 1px 6px;
+        border-radius: 5px;
+        background: var(--bg);
+        color: var(--muted);
+        border: 1px solid var(--border);
+        white-space: nowrap;
+      }
+      .tag.backend {
+        color: #c084fc;
+      }
+      .tag.frontend,
+      .tag.app {
+        color: #38bdf8;
+      }
+      .tag.infra {
+        color: #fbbf24;
+      }
+      .verify {
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      .verify.auto {
+        color: #34d399;
+      }
+      .blocked-flag {
+        color: var(--blocked);
+        font-size: 11px;
+        margin-left: auto;
+      }
+      .err {
+        background: #2a1416;
+        border: 1px solid var(--blocked);
+        border-radius: 10px;
+        padding: 16px;
+        color: #fca5a5;
+      }
+      .err code {
+        background: #000;
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: #fff;
+      }
+      .legend {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        color: var(--muted);
+        font-size: 12px;
+        margin: 24px 0 8px;
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .deadline.late {
+        color: var(--blocked);
+      }
+      .summary-card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+        margin-bottom: 24px;
+      }
+      .summary-head {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+      .summary-head h2 {
+        font-size: 17px;
+        margin: 0;
+      }
+      .summary-head .deadline {
+        color: var(--muted);
+        font-size: 12px;
+        margin-left: auto;
+      }
+      .ip-box {
+        background: var(--panel-2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin-bottom: 14px;
+      }
+      .ip-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 13px;
+        margin-bottom: 2px;
+      }
+      .ip-title.empty {
+        color: var(--muted);
+        font-weight: 400;
+      }
+      .ip-list {
+        list-style: none;
+        margin: 8px 0 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .ip-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .ip-list .desc {
+        flex: 1;
+      }
+      .objective {
+        color: var(--muted);
+        margin: 0 0 12px;
+      }
+      .counts {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .counts span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .counts b {
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+      }
+      @media (max-width: 760px) {
+        .app {
+          flex-direction: column;
+        }
+        .sidebar {
+          width: 100%;
+          height: auto;
+          position: static;
+          align-self: auto;
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+          padding: 16px;
+        }
+        #mvp-nav {
+          flex-direction: row;
+          overflow-x: auto;
+          gap: 8px;
+        }
+        .nav-item {
+          min-width: 150px;
+          flex-shrink: 0;
+        }
+        .main {
+          padding: 20px 16px 48px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <h1>Roadmap</h1>
+        <div class="sub">Source of truth: <code>roadmap/*.json</code></div>
+        <nav id="mvp-nav"></nav>
+      </aside>
+      <main class="main">
+        <div id="summary"></div>
+        <div id="root"></div>
+        <div class="legend">
+          <span><i class="dot todo" style="position: static"></i> To do</span>
+          <span><i class="dot doing" style="position: static"></i> In progress</span>
+          <span><i class="dot done" style="position: static"></i> Done</span>
+          <span><i class="dot blocked" style="position: static"></i> Blocked</span>
+          <span>✓ green = automated verification</span>
+        </div>
+      </main>
+    </div>
+    <script>
+      // The dashboard discovers MVPs by fetching mvp-1.json … mvp-N.json. No maintenance
+      // needed when adding a new MVP: just create the file.
+      const MAX_MVP = 30;
+      const STORE_KEY = "harness-roadmap-mvp";
+      const root = document.getElementById("root");
+      const nav = document.getElementById("mvp-nav");
+      const summary = document.getElementById("summary");
+      let MVPS = [];
+
+      function flatTasks(mvp) {
+        const t = [];
+        for (const s of mvp.sprints)
+          for (const g of s.goals) for (const task of g.tasks) t.push(task);
+        return t;
+      }
+      function pct(tasks) {
+        if (!tasks.length) return 0;
+        const done = tasks.filter((x) => x.status === "done").length;
+        return Math.round((done / tasks.length) * 100);
+      }
+      function esc(s) {
+        return String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
+      }
+      function bar(p) {
+        return `<div class="bar-row"><div class="bar"><span style="width:${p}%"></span></div><div class="pct">${p}%</div></div>`;
+      }
+      function detailLink(d) {
+        return d
+          ? ` <a href="../${esc(d)}" target="_blank">${esc(d.replace("plans/", ""))} ↗</a>`
+          : "";
+      }
+      function renderTask(t) {
+        const v = t.verify || {};
+        const auto = v.type && v.type !== "manual";
+        const label = auto ? `${v.type}: ${v.desc || v.spec || ""}` : v.desc || v.type || "";
+        return `<div class="task ${t.status}">
+    <div class="dot ${t.status}"></div>
+    <div class="desc">${esc(t.desc)}
+      ${label ? `<div class="verify ${auto ? "auto" : ""}" ${auto && v.spec ? `title="${esc(v.spec)}"` : ""}>${auto ? "✓ " : "· "}${esc(label)}</div>` : ""}
+    </div>
+    ${t.area ? `<span class="tag ${esc(t.area)}">${esc(t.area)}</span>` : ""}
+    ${t.status === "blocked" ? '<span class="blocked-flag">⚠ blocked</span>' : ""}
+  </div>`;
+      }
+      function renderGoal(g) {
+        return `<div class="goal">
+    <div class="goal-title">${esc(g.title)} <span class="pct">${pct(g.tasks)}%</span>${detailLink(g.detail)}</div>
+    ${g.tasks.map(renderTask).join("")}
+  </div>`;
+      }
+      function renderSprint(s) {
+        const tasks = s.goals.flatMap((g) => g.tasks);
+        const p = pct(tasks);
+        const open = p > 0 && p < 100 ? "open" : "";
+        return `<details ${open}>
+    <summary>
+      <span class="chev">▶</span>
+      <span class="s-title">${esc(s.title)}</span>
+      <span class="pill">${esc(s.estimate || "")}</span>
+      <div style="width:160px">${bar(p)}</div>
+    </summary>
+    ${detailLink(s.detail) ? `<div class="goal" style="padding-bottom:0"><div class="verify">Design:${detailLink(s.detail)}</div></div>` : ""}
+    ${s.goals.map(renderGoal).join("")}
+  </details>`;
+      }
+      function counts(tasks) {
+        const c = { todo: 0, doing: 0, done: 0, blocked: 0 };
+        for (const t of tasks) if (c[t.status] !== undefined) c[t.status]++;
+        return c;
+      }
+      function renderSummary(mvp) {
+        const tasks = flatTasks(mvp);
+        const p = pct(tasks);
+        const c = counts(tasks);
+        const active = tasks.filter((t) => t.status === "doing" || t.status === "blocked");
+        const late = mvp.deadline && new Date(mvp.deadline) < new Date() && p < 100;
+        const ip = active.length
+          ? `<div class="ip-title"><i class="dot doing" style="position:static"></i> In progress (${active.length})</div>
+       <ul class="ip-list">${active
+         .map(
+           (t) => `<li>
+         <div class="dot ${t.status}"></div>
+         <div class="desc">${esc(t.desc)}</div>
+         ${t.area ? `<span class="tag ${esc(t.area)}">${esc(t.area)}</span>` : ""}
+         ${t.status === "blocked" ? '<span class="blocked-flag">⚠ blocked</span>' : ""}
+       </li>`,
+         )
+         .join("")}</ul>`
+          : `<div class="ip-title empty"><i class="dot todo" style="position:static"></i> Nothing in progress</div>`;
+        return `<div class="summary-card">
+    <div class="summary-head">
+      <h2>MVP ${esc(mvp.mvp)}</h2>
+      <span class="pill ${esc(mvp.status)}">${esc(mvp.status)}</span>
+      <span class="deadline ${late ? "late" : ""}">deadline ${esc(mvp.deadline || "—")}${late ? " · ⚠ overdue" : ""}</span>
+    </div>
+    <div class="ip-box">${ip}</div>
+    <div class="objective">${esc(mvp.objective || "")}</div>
+    ${bar(p)}
+    <div class="counts">
+      <span><i class="dot done" style="position:static"></i> Done <b>${c.done}</b></span>
+      <span><i class="dot doing" style="position:static"></i> In progress <b>${c.doing}</b></span>
+      <span><i class="dot todo" style="position:static"></i> To do <b>${c.todo}</b></span>
+      <span><i class="dot blocked" style="position:static"></i> Blocked <b>${c.blocked}</b></span>
+    </div>
+  </div>`;
+      }
+      function renderNav(mvps) {
+        nav.innerHTML = mvps
+          .map((mvp) => {
+            const p = pct(flatTasks(mvp));
+            return `<button class="nav-item" data-mvp="${esc(mvp.mvp)}">
+      <div class="nav-item-head">
+        <span class="name">MVP ${esc(mvp.mvp)}</span>
+        <span class="pill ${esc(mvp.status)}">${esc(mvp.status)}</span>
+      </div>
+      ${bar(p)}
+    </button>`;
+          })
+          .join("");
+        nav
+          .querySelectorAll(".nav-item")
+          .forEach((btn) =>
+            btn.addEventListener("click", () => selectMvp(Number(btn.dataset.mvp))),
+          );
+      }
+      function selectMvp(num) {
+        const mvp = MVPS.find((m) => m.mvp === num);
+        if (!mvp) return;
+        summary.innerHTML = renderSummary(mvp);
+        root.innerHTML = mvp.sprints.map(renderSprint).join("");
+        nav
+          .querySelectorAll(".nav-item")
+          .forEach((btn) => btn.classList.toggle("active", Number(btn.dataset.mvp) === num));
+        try {
+          localStorage.setItem(STORE_KEY, String(num));
+        } catch (e) {}
+      }
+      async function load() {
+        const mvps = [];
+        for (let n = 1; n <= MAX_MVP; n++) {
+          try {
+            const r = await fetch(`mvp-${n}.json`, { cache: "no-store" });
+            if (r.ok) mvps.push(await r.json());
+          } catch (e) {}
+        }
+        if (!mvps.length) {
+          root.innerHTML = `<div class="err">
+      Could not load the JSON files. If you opened this with <code>file://</code>,
+      the browser blocks <code>fetch()</code> of local files.<br><br>
+      Serve it with: <code>pnpm roadmap</code> (or <code>cd harness/docs/roadmap && python3 -m http.server 8080</code>)
+      and open <code>http://localhost:8080/dashboard.html</code>.<br><br>
+      If you haven't generated a roadmap yet, run <code>/project-setup</code> in your agent first.
+    </div>`;
+          return;
+        }
+        mvps.sort((a, b) => b.mvp - a.mvp);
+        MVPS = mvps;
+        renderNav(mvps);
+        let initial = null;
+        try {
+          const saved = Number(localStorage.getItem(STORE_KEY));
+          if (mvps.some((m) => m.mvp === saved)) initial = saved;
+        } catch (e) {}
+        if (initial === null) {
+          const active = mvps.find((m) => m.status === "in_progress");
+          initial = active ? active.mvp : mvps[0].mvp;
+        }
+        selectMvp(initial);
+      }
+      load();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+{
+  "name": "{{PROJECT_SLUG}}",
+  "private": true,
+  "packageManager": "pnpm@9.15.2",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "check-types": "turbo run check-types",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "e2e": "playwright test",
+    "e2e:server": "pnpm --filter web build && pnpm --filter web start",
+    "verify": "turbo run check-types lint test",
+    "roadmap": "python3 -m http.server 8080 --directory harness/docs/roadmap",
+    "up": "bash harness/scripts/dev-up.sh",
+    "format": "prettier --write .",
+    "db:types": "node scripts/db-types.mjs",
+    "seed": "tsx packages/db/src/seed.ts",
+    "worktree:new": "bash harness/scripts/worktree-new.sh"
+  },
+  "devDependencies": {
+    "@app/config": "workspace:*",
+    "@app/db": "workspace:*",
+    "@app/integrations": "workspace:*",
+    "@playwright/test": "^1.60.0",
+    "@supabase/supabase-js": "^2.108.1",
+    "prettier": "^3.8.4",
+    "prettier-plugin-tailwindcss": "^0.6.14",
+    "supabase": "^2.107.0",
+    "tsx": "^4.22.4",
+    "turbo": "^2.9.18",
+    "typescript": "^5.9.3"
+  }
+}

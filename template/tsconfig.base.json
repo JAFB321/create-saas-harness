@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "declaration": true,
+    "incremental": true,
+    "paths": {
+      "@app/core": ["./packages/core/src/index.ts"],
+      "@app/core/*": ["./packages/core/src/*"],
+      "@app/db": ["./packages/db/src/index.ts"],
+      "@app/db/*": ["./packages/db/src/*"],
+      "@app/integrations": ["./packages/integrations/src/index.ts"],
+      "@app/integrations/*": ["./packages/integrations/src/*"]
+    }
+  }
+}

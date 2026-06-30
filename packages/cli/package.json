@@ -1,0 +1,37 @@
+{
+  "name": "create-saas-harness",
+  "version": "0.1.0",
+  "description": "Scaffold a Next.js + Supabase SaaS monorepo with a built-in, agents-powered dev harness.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "create-saas-harness": "./index.mjs"
+  },
+  "files": [
+    "index.mjs",
+    "lib",
+    "template"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node ./index.mjs",
+    "sync-template": "node ./lib/sync-template.mjs",
+    "prepack": "node ./lib/sync-template.mjs"
+  },
+  "keywords": [
+    "saas",
+    "template",
+    "nextjs",
+    "supabase",
+    "claude-code",
+    "agents",
+    "boilerplate",
+    "monorepo"
+  ],
+  "dependencies": {
+    "@clack/prompts": "^0.10.0",
+    "picocolors": "^1.1.1"
+  }
+}

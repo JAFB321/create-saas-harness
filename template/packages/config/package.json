@@ -1,0 +1,31 @@
+{
+  "name": "@app/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tsconfig/base.json": "./tsconfig/base.json",
+    "./tsconfig/nextjs.json": "./tsconfig/nextjs.json",
+    "./tsconfig/library.json": "./tsconfig/library.json",
+    "./eslint/base": "./eslint/base.js",
+    "./eslint/next": "./eslint/next.js",
+    "./prettier": "./prettier/index.js",
+    "./tailwind": "./tailwind/preset.js"
+  },
+  "scripts": {
+    "lint": "echo 'no lint for config'",
+    "check-types": "echo 'no types for config'",
+    "test": "echo 'no tests for config'"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "eslint": "^9.11.0",
+    "typescript-eslint": "^8.8.0",
+    "@eslint/js": "^9.11.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "@next/eslint-plugin-next": "^15.0.0",
+    "prettier": "^3.8.4",
+    "prettier-plugin-tailwindcss": "^0.6.14"
+  }
+}

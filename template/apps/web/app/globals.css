@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+/* Tailwind v4 is CSS-first. Theme tokens live here (shadcn-style CSS vars). */
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #71717a;
+  --color-border: #e4e4e7;
+  --color-primary: #4f46e5;
+  --color-primary-foreground: #ffffff;
+  --radius: 0.5rem;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}

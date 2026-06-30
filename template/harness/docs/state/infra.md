@@ -1,0 +1,36 @@
+# Infra state
+
+## Mock-first integrations
+
+Every third-party integration sits behind an interface in `@app/integrations`, selected by a factory
+that defaults to a mock when keys are absent (logs a `provider_fallback` warning, never crashes):
+
+| Integration | Interface         | Mock                  | Real (when keys present)            | Env selector        |
+| ----------- | ----------------- | --------------------- | ----------------------------------- | ------------------- |
+| Payments    | `PaymentProvider` | `MockPaymentProvider` | `RealPaymentProvider` (Stripe **or** MercadoPago, chosen at scaffold) | `PAYMENTS_PROVIDER` |
+| Email       | `EmailProvider`   | `MockEmailProvider`   | `ResendProvider`                    | `EMAIL_PROVIDER`    |
+| Storage     | `StorageProvider` | `MockStorageProvider` | `S3StorageProvider` (S3/R2/MinIO)   | `STORAGE_PROVIDER`  |
+
+`status.ts` decides "requested vs effective" provider (used by `/api/health`). `factory.ts` memoizes
+singletons (`resetProviders()` for tests). The chosen payment adapter is re-exported from
+`payment/real.ts`; the scaffolder prunes the other adapter and its SDK dependency.
+
+## Settlement
+
+`settleOrder(orderId, input)` is the single payment-state mutator: UUID guard → append-only
+`payment_events` → conditional UPDATE ("paid always wins", concurrent-safe) → best-effort fulfillment
+(receipt email). The webhook route (`/api/webhooks/payments`) parses via the active provider, calls
+`settleOrder`, and applies a plan upgrade when the paid order carries `metadata.plan`.
+
+## Env
+
+Validated in `@app/db/env.ts`. Required for the app to run: `NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. Everything else is optional (mock-first).
+`APP_BASE_URL` is required in deployed (preview/production) envs. Full list: `.env.example`.
+
+## Deploy
+
+- `supabase/` — config + migrations; `pnpm db:types` regenerates types.
+- `.github/workflows/`: `verify` (types+lint+test on push/PR), `e2e` (spins a local Supabase),
+  `migrations` (pushes to the linked remote on merge to main; needs Supabase secrets).
+- Hosting target is Vercel (Next.js). Set the env vars in the host; never commit `.env.local`.

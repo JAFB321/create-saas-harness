@@ -1,0 +1,28 @@
+{
+  "name": "@app/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@app/core": "workspace:*",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.108.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@app/config": "workspace:*",
+    "next": "^15.1.3",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8"
+  }
+}

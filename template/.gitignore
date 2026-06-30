@@ -1,0 +1,23 @@
+node_modules/
+.next/
+.turbo/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# env (never commit real keys)
+.env
+.env.local
+.env*.local
+
+# supabase local
+supabase/.branches/
+supabase/.temp/
+
+# test artifacts
+test-results/
+playwright-report/
+
+.DS_Store
+*.log

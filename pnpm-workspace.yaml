@@ -1,0 +1,5 @@
+# Only the CLI is a workspace member of THIS repo.
+# `template/` is raw files copied by the CLI — it is intentionally NOT a workspace
+# member so pnpm does not try to install or link the template's own packages here.
+packages:
+  - "packages/*"

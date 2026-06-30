@@ -1,0 +1,59 @@
+{
+  "mvp": 1,
+  "objective": "TEMPLATE — describe the MVP objective in one sentence. Copy this file to mvp-1.json (gitignored) and edit it; this mvp-example.json is the reference template and the only versioned roadmap file. `/project-setup` generates real mvp-*.json files for you.",
+  "deadline": "",
+  "availability": "e.g. 4-6h/week",
+  "status": "todo",
+  "scope": {
+    "included": ["feature A included in this MVP", "feature B"],
+    "excluded": ["feature deferred to a later MVP"]
+  },
+  "sprints": [
+    {
+      "id": "s1",
+      "title": "Sprint title",
+      "estimate": "~10h",
+      "detail": "plans/s1.md",
+      "goals": [
+        {
+          "id": "s1-g1",
+          "title": "Concrete sprint goal",
+          "tasks": [
+            {
+              "id": "s1-g1-t1",
+              "desc": "Task with unit verification.",
+              "area": "app",
+              "status": "todo",
+              "verify": {
+                "type": "unit",
+                "spec": "packages/core/src/__tests__/example.test.ts",
+                "desc": "What behavior the unit test validates."
+              }
+            },
+            {
+              "id": "s1-g1-t2",
+              "desc": "Task with end-to-end verification.",
+              "area": "app",
+              "status": "todo",
+              "verify": {
+                "type": "e2e",
+                "spec": "e2e/example.spec.ts",
+                "desc": "What UI/API flow the e2e validates."
+              }
+            },
+            {
+              "id": "s1-g1-t3",
+              "desc": "Task with no automated test (requires human confirmation).",
+              "area": "app",
+              "status": "todo",
+              "verify": {
+                "type": "manual",
+                "desc": "Human-readable acceptance criterion the human confirms by hand."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

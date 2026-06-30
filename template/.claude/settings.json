@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/harness/scripts/harness-guard.mjs\"",
+            "timeout": 10,
+            "statusMessage": "harness-guard"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" && pnpm check-types >/tmp/harness-checktypes.log 2>&1 || echo '{\"systemMessage\":\"check-types FAILED — types are broken. Run `pnpm check-types` for details.\"}'",
+            "timeout": 120,
+            "statusMessage": "check-types (guard)"
+          }
+        ]
+      }
+    ]
+  }
+}
