@@ -1,7 +1,7 @@
 {
   "name": "create-saas-harness-repo",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "description": "Monorepo for the create-saas-harness CLI and its project template.",
   "license": "MIT",
   "packageManager": "pnpm@9.15.2",
