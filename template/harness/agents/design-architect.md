@@ -25,9 +25,9 @@ its setup exactly:
 2. Read the register reference it names: `harness/skills/impeccable/reference/product.md` for
    app/dashboard/tool UI (the usual case), or `reference/brand.md` for landing/marketing-first.
 3. Read the existing shell so you build ON it, not around it: `apps/web/app/globals.css`,
-   `apps/web/app/layout.tsx`, `apps/web/components/ui/{button,input,card}.tsx`,
-   `packages/config/tailwind/preset.js`. Reuse shadcn semantic tokens — remap them onto the new
-   palette so existing components adopt the brand with no rewrite.
+   `apps/web/app/layout.tsx`, `apps/web/components/ui/{button,input,card}.tsx`.
+   Reuse shadcn semantic tokens — remap them onto the new palette so existing components adopt
+   the brand with no rewrite (Tailwind v4 is CSS-first: tokens live in `globals.css`).
 4. **Anchor the palette:**
    - If `/project-setup` captured an existing design system to match (a pasted/linked
      `design.json` or token set — see `FOUNDATIONS/09-inspirations.md` and the decisions log), adapt

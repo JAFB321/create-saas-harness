@@ -21,7 +21,8 @@ async function main() {
   if (created.data.user) {
     userId = created.data.user.id;
   } else {
-    const { data } = await db.auth.admin.listUsers();
+    // listUsers defaults to 50 per page — bump it so the lookup still finds the demo user.
+    const { data } = await db.auth.admin.listUsers({ page: 1, perPage: 1000 });
     userId = data.users.find((u) => u.email === DEMO_EMAIL)?.id;
   }
   if (!userId) throw new Error("Could not create or find the demo user.");

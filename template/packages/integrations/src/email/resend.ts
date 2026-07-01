@@ -4,6 +4,12 @@ import type { EmailProvider, SendEmailInput, SendEmailResult } from "../types";
 import { ProviderConfigError } from "../errors";
 import { logger } from "../logger";
 
+/** Env value that selects this provider + its readiness check (used by status.ts). */
+export const PROVIDER_NAME = "resend";
+export function isConfigured(): boolean {
+  return Boolean(process.env.RESEND_API_KEY);
+}
+
 /** Resend email provider. Requires RESEND_API_KEY and EMAIL_FROM. */
 export class ResendProvider implements EmailProvider {
   private resend: Resend;

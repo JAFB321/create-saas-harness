@@ -22,6 +22,7 @@ export async function createItemAction(
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
 
   const supabase = await createServerClient();
+  // Count-then-insert is race-prone (fine for a template); revenue-gating limits belong in the DB.
   const { count } = await supabase
     .from("items")
     .select("id", { count: "exact", head: true })

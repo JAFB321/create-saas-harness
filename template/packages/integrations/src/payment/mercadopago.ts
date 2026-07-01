@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { MercadoPagoConfig, Payment, Preference } from "mercadopago";
 import { getAppBaseUrl } from "@app/db";
 import type {
@@ -6,7 +7,37 @@ import type {
   ParsedWebhook,
   PaymentProvider,
 } from "../types";
-import { ProviderConfigError } from "../errors";
+import { ProviderConfigError, WebhookVerificationError } from "../errors";
+
+/**
+ * MercadoPago's documented HMAC check: x-signature carries `ts=...,v1=...`; v1 is the
+ * HMAC-SHA256 (hex) of `id:<data.id>;request-id:<x-request-id>;ts:<ts>;` with the webhook secret.
+ * Skipped silently when MERCADOPAGO_WEBHOOK_SECRET is not set.
+ */
+function verifySignature(req: Request, dataId: string, secret: string): void {
+  const parts = new Map(
+    (req.headers.get("x-signature") ?? "")
+      .split(",")
+      .map((p) => p.trim().split("=", 2) as [string, string]),
+  );
+  const ts = parts.get("ts");
+  const v1 = parts.get("v1");
+  if (!ts || !v1) throw new WebhookVerificationError("MercadoPago x-signature header is missing.");
+
+  const manifest = `id:${dataId};request-id:${req.headers.get("x-request-id") ?? ""};ts:${ts};`;
+  const expected = createHmac("sha256", secret).update(manifest).digest("hex");
+  const a = Buffer.from(expected);
+  const b = Buffer.from(v1);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+    throw new WebhookVerificationError("MercadoPago signature verification failed.");
+  }
+}
+
+/** Env value that selects this provider + its readiness check (used by status.ts). */
+export const PROVIDER_NAME = "mercadopago";
+export function isConfigured(): boolean {
+  return Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN);
+}
 
 /**
  * MercadoPago Checkout Pro provider. Requires MERCADOPAGO_ACCESS_TOKEN.
@@ -62,6 +93,8 @@ export class MercadoPagoProvider implements PaymentProvider {
     if (!paymentId || body.type !== "payment") {
       return { orderId: "", status: "failed", providerRef: "", method: "other", feeCents: null };
     }
+    const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
+    if (secret) verifySignature(req, paymentId, secret);
     // Fetch the payment with our token to learn the order + status (don't trust the webhook body).
     const payment = await new Payment(this.client).get({ id: paymentId });
     const orderId = payment.external_reference ?? "";

@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { createServiceClient } from "@app/db";
 import { formatMoney } from "@app/core";
 import { selectPaymentStatus } from "@app/integrations";
+import { requireUser } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SimulatePanel } from "./_components/simulate";
@@ -11,19 +13,16 @@ export default async function CheckoutPage({
 }: {
   params: Promise<{ orderId: string }>;
 }) {
+  const user = await requireUser();
   const { orderId } = await params;
   const db = createServiceClient();
   const { data: order } = await db.from("orders").select("*").eq("id", orderId).maybeSingle();
 
-  if (!order) {
-    return (
-      <main className="mx-auto flex min-h-screen max-w-md items-center justify-center px-6">
-        <Card>Order not found.</Card>
-      </main>
-    );
-  }
+  // Service-role read bypasses RLS — enforce ownership here (404, don't leak existence).
+  if (!order || order.user_id !== user.id) notFound();
 
   const isMock = selectPaymentStatus().provider === "mock";
+  const devTools = process.env.DEV_TOOLS_ENABLED === "true";
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 px-6">
@@ -40,7 +39,7 @@ export default async function CheckoutPage({
           <Link href="/dashboard">
             <Button className="w-full">Back to dashboard</Button>
           </Link>
-        ) : isMock ? (
+        ) : isMock && devTools ? (
           <>
             <p className="text-sm text-[var(--color-muted-foreground)]">
               Mock checkout — no real provider configured. Simulate the outcome:

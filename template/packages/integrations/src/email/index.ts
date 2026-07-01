@@ -1,3 +1,3 @@
 export { MockEmailProvider } from "./mock";
-export { ResendProvider } from "./resend";
+export { RealEmailProvider } from "./real";
 export { getEmailProvider } from "../factory";

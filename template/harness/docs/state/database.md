@@ -25,10 +25,17 @@ Postgres schema in `supabase/migrations`, surfaced to the app via `@app/db` type
 
 Enabled on every table. End users (anon/authenticated) can only touch their OWN rows:
 
-- `profiles`: select/update own.
+- `profiles`: select/update own (column grants limit updates to `full_name`; `plan`/`role` move
+  only via the service role).
 - `items`: full CRUD where `owner_id = auth.uid()`.
 - `orders`, `subscriptions`: select own (writes are server-side via the service role).
 - `payment_events`: no end-user policy (service role only).
+
+## Storage
+
+`supabase/migrations/20260101000002_storage.sql` creates the private `uploads` bucket. All access
+is server-side (service role + signed URLs), so no `storage.objects` policies are needed for the
+anon/authenticated roles.
 
 ## Clients
 

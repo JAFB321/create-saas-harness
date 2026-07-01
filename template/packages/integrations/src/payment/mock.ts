@@ -5,6 +5,7 @@ import type {
   ParsedWebhook,
   PaymentProvider,
 } from "../types";
+import { WebhookVerificationError } from "../errors";
 
 /**
  * Mock payment provider — the default. Lets the whole app run with NO payment keys.
@@ -21,6 +22,11 @@ export class MockPaymentProvider implements PaymentProvider {
   }
 
   async parseWebhook(req: Request): Promise<ParsedWebhook> {
+    // The simulated webhook is unauthenticated JSON that can settle any order — only allow it
+    // when dev tools are explicitly enabled (never in production).
+    if (process.env.DEV_TOOLS_ENABLED !== "true") {
+      throw new WebhookVerificationError("Mock webhooks require DEV_TOOLS_ENABLED=true.");
+    }
     const body = (await req.json().catch(() => ({}))) as {
       orderId?: string;
       status?: "paid" | "failed" | "expired";

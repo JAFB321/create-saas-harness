@@ -1,3 +1,7 @@
-// The "real" (non-mock) payment provider. The scaffolder rewrites this re-export to match the
-// payments provider you chose, and prunes the other adapter file. Default: Stripe.
-export { StripePaymentProvider as RealPaymentProvider } from "./stripe";
+// The "real" (non-mock) payment provider, selected at scaffold time. Default: Stripe.
+// The scaffolder repoints this re-export and prunes the other adapter (and its SDK dependency).
+export {
+  StripePaymentProvider as RealPaymentProvider,
+  PROVIDER_NAME as REAL_PAYMENT_PROVIDER,
+  isConfigured as isRealPaymentConfigured,
+} from "./stripe";

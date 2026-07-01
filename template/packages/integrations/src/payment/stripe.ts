@@ -8,6 +8,12 @@ import type {
 } from "../types";
 import { ProviderConfigError, WebhookVerificationError } from "../errors";
 
+/** Env value that selects this provider + its readiness check (used by status.ts). */
+export const PROVIDER_NAME = "stripe";
+export function isConfigured(): boolean {
+  return Boolean(process.env.STRIPE_SECRET_KEY);
+}
+
 /**
  * Stripe Checkout provider. Requires STRIPE_SECRET_KEY (+ STRIPE_WEBHOOK_SECRET for webhooks).
  * The order id travels in `metadata.orderId` so the webhook can resolve it back.
@@ -61,9 +67,27 @@ export class StripePaymentProvider implements PaymentProvider {
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
+      // Async methods (SEPA, OXXO, …) complete with payment_status "unpaid" — that's NOT a
+      // failure; the async_payment_* events below deliver the real outcome. No-op it.
+      if (session.payment_status !== "paid") {
+        return { orderId: "", status: "failed", providerRef: session.id, method: "other", feeCents: null };
+      }
       return {
         orderId: session.metadata?.orderId ?? session.client_reference_id ?? "",
-        status: session.payment_status === "paid" ? "paid" : "failed",
+        status: "paid",
+        providerRef: session.payment_intent?.toString() ?? session.id,
+        method: "card",
+        feeCents: null,
+      };
+    }
+    if (
+      event.type === "checkout.session.async_payment_succeeded" ||
+      event.type === "checkout.session.async_payment_failed"
+    ) {
+      const session = event.data.object as Stripe.Checkout.Session;
+      return {
+        orderId: session.metadata?.orderId ?? session.client_reference_id ?? "",
+        status: event.type === "checkout.session.async_payment_succeeded" ? "paid" : "failed",
         providerRef: session.payment_intent?.toString() ?? session.id,
         method: "card",
         feeCents: null,

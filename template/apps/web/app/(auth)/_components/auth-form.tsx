@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { t } from "@/lib/i18n";
 import { type AuthState, loginAction, signupAction } from "../_actions";
 
-export function AuthForm({ mode }: { mode: "login" | "signup" }) {
+export function AuthForm({ mode, next, notice }: { mode: "login" | "signup"; next?: string; notice?: string }) {
   const action = mode === "login" ? loginAction : signupAction;
   const [state, formAction, pending] = useActionState<AuthState, FormData>(action, {});
 
@@ -16,6 +16,11 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       <h1 className="mb-2 text-2xl font-semibold">
         {mode === "login" ? t("auth.login") : t("auth.signup")}
       </h1>
+
+      {notice && <p className="text-sm text-[var(--color-muted-foreground)]">{notice}</p>}
+
+      {/* Deep-link target set by the middleware login redirect; validated server-side. */}
+      {next && <input type="hidden" name="next" value={next} />}
 
       {mode === "signup" && (
         <label className="flex flex-col gap-1 text-sm">
@@ -31,7 +36,12 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
       <label className="flex flex-col gap-1 text-sm">
         {t("auth.password")}
-        <Input name="password" type="password" required autoComplete="current-password" />
+        <Input
+          name="password"
+          type="password"
+          required
+          autoComplete={mode === "signup" ? "new-password" : "current-password"}
+        />
       </label>
 
       {state.error && <p className="text-sm text-red-600">{state.error}</p>}
