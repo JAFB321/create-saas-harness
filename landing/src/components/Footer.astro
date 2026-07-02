@@ -1,0 +1,94 @@
+---
+const GITHUB = "https://github.com/JAFB321/create-saas-harness";
+---
+
+<section class="cta-final">
+  <div class="container">
+    <div class="cta-box reveal">
+      <h2>Your SaaS is one command away.</h2>
+      <p>Compose it above, paste it in your terminal, and let the harness take it from there.</p>
+      <div class="row">
+        <a class="btn btn-primary" href="#configure">Build your command</a>
+        <a class="btn btn-ghost" href={GITHUB} target="_blank" rel="noopener">Read the source</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <span class="foot-brand">create-saas-harness</span>
+    <nav class="foot-links" aria-label="Footer">
+      <a href={GITHUB} target="_blank" rel="noopener">GitHub</a>
+      <a href={`${GITHUB}/blob/main/LICENSE`} target="_blank" rel="noopener">MIT License</a>
+      <a href="https://www.npmjs.com/package/create-saas-harness" target="_blank" rel="noopener">npm</a>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .cta-final {
+    padding: 40px 0 110px;
+  }
+  .cta-box {
+    text-align: center;
+    padding: 72px 32px;
+    border: 1px solid var(--border-strong);
+    border-radius: 24px;
+    background:
+      radial-gradient(420px 200px at 50% 0%, rgba(34, 211, 238, 0.12), transparent 70%),
+      linear-gradient(180deg, var(--bg-elev-2), var(--bg-elev));
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-box::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 15%;
+    right: 15%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.6), rgba(167, 139, 250, 0.6), transparent);
+  }
+  .cta-box h2 {
+    font-size: clamp(26px, 4vw, 38px);
+  }
+  .cta-box p {
+    margin-top: 12px;
+    color: var(--text-dim);
+    font-size: 16.5px;
+  }
+  .row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+  }
+
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 26px 0;
+  }
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .foot-brand {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+  .foot-links {
+    display: flex;
+    gap: 22px;
+    font-size: 13.5px;
+    color: var(--text-dim);
+  }
+  .foot-links a:hover {
+    color: var(--text);
+  }
+</style>

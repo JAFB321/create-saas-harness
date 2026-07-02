@@ -8,7 +8,9 @@ import { createServerClient } from "@app/db";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/dashboard";
+  // Only same-origin paths: "/x" is fine, "//evil.com" is a protocol-relative open redirect.
+  const rawNext = searchParams.get("next") ?? "";
+  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/dashboard";
 
   if (code) {
     const supabase = await createServerClient();

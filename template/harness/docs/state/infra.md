@@ -5,15 +5,18 @@
 Every third-party integration sits behind an interface in `@app/integrations`, selected by a factory
 that defaults to a mock when keys are absent (logs a `provider_fallback` warning, never crashes):
 
-| Integration | Interface         | Mock                  | Real (when keys present)            | Env selector        |
-| ----------- | ----------------- | --------------------- | ----------------------------------- | ------------------- |
-| Payments    | `PaymentProvider` | `MockPaymentProvider` | `RealPaymentProvider` (Stripe **or** MercadoPago, chosen at scaffold) | `PAYMENTS_PROVIDER` |
-| Email       | `EmailProvider`   | `MockEmailProvider`   | `ResendProvider`                    | `EMAIL_PROVIDER`    |
-| Storage     | `StorageProvider` | `MockStorageProvider` | `S3StorageProvider` (S3/R2/MinIO)   | `STORAGE_PROVIDER`  |
+| Integration | Interface         | Mock                  | Real (scaffold-time choice)              | Env selector        |
+| ----------- | ----------------- | --------------------- | ---------------------------------------- | ------------------- |
+| Payments    | `PaymentProvider` | `MockPaymentProvider` | `RealPaymentProvider` → {{PAYMENTS_PROVIDER}} | `PAYMENTS_PROVIDER` |
+| Email       | `EmailProvider`   | `MockEmailProvider`   | `RealEmailProvider` → {{EMAIL_PROVIDER}}     | `EMAIL_PROVIDER`    |
+| Storage     | `StorageProvider` | `MockStorageProvider` | `RealStorageProvider` → {{STORAGE_PROVIDER}} | `STORAGE_PROVIDER`  |
 
-`status.ts` decides "requested vs effective" provider (used by `/api/health`). `factory.ts` memoizes
-singletons (`resetProviders()` for tests). The chosen payment adapter is re-exported from
-`payment/real.ts`; the scaffolder prunes the other adapter and its SDK dependency.
+Each integration's chosen adapter is re-exported from `packages/integrations/src/<kind>/real.ts`
+(class + `REAL_*_PROVIDER` name + `isReal*Configured()`); the scaffolder repoints that file and
+prunes the unchosen adapters and their SDK dependencies. `status.ts` decides "requested vs
+effective" provider generically from those re-exports (used by `/api/health`). `factory.ts`
+memoizes singletons (`resetProviders()` for tests). The real provider activates only when the env
+selector matches the scaffold-time choice AND its keys are present; otherwise mock + one warning.
 
 ## Settlement
 

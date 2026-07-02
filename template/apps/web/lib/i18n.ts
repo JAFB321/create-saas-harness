@@ -16,6 +16,7 @@ const en = {
   "auth.password": "Password",
   "auth.fullName": "Full name",
   "auth.noAccount": "Don't have an account?",
+  "auth.confirmEmail": "Check your inbox to confirm your email, then log in.",
   "auth.haveAccount": "Already have an account?",
   "landing.tagline": "The fastest way to ship your SaaS.",
   "landing.cta": "Get started",

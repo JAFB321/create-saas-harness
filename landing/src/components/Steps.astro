@@ -1,0 +1,118 @@
+---
+const steps = [
+  {
+    n: "01",
+    cmd: "npx create-saas-harness",
+    title: "Scaffold",
+    body: "Pick your modules — payments, storage, email, package manager. The CLI copies the template, wires your choices, prunes the rest, installs and makes the first commit.",
+    time: "~2 min",
+  },
+  {
+    n: "02",
+    cmd: "/project-setup",
+    title: "Define your product",
+    body: "A 7-round interview inside your agent. It writes FOUNDATIONS/* (your source of truth), commits a concrete design system, and generates a fully executable roadmap.",
+    time: "~15 min",
+  },
+  {
+    n: "03",
+    cmd: "/session-start",
+    title: "Build, session by session",
+    body: "Each session opens with a decision gate: answer everything up front, then the orchestrator delegates tasks to dev agents, verifies with tests and reviews the diff — autonomously.",
+    time: "0 → 100",
+  },
+];
+---
+
+<section class="section" id="how">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">How it works</span>
+      <h2>Three commands between an idea<br />and a shipping loop.</h2>
+    </div>
+    <div class="steps">
+      {
+        steps.map((s) => (
+          <article class="step reveal">
+            <div class="step-top">
+              <span class="step-n">{s.n}</span>
+              <span class="step-time">{s.time}</span>
+            </div>
+            <code class="step-cmd">{s.cmd}</code>
+            <h3>{s.title}</h3>
+            <p>{s.body}</p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  .step {
+    position: relative;
+    padding: 26px 26px 30px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    transition:
+      border-color 0.25s ease,
+      transform 0.25s var(--ease-spring),
+      box-shadow 0.3s ease;
+  }
+  .step:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-3px);
+    box-shadow: 0 20px 50px -24px rgba(0, 0, 0, 0.8);
+  }
+  .step-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .step-n {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 700;
+  }
+  .step-time {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--text-faint);
+  }
+  .step-cmd {
+    display: inline-block;
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--accent);
+    background: rgba(34, 211, 238, 0.07);
+    border: 1px solid rgba(34, 211, 238, 0.18);
+    padding: 5px 11px;
+    border-radius: 7px;
+  }
+  h3 {
+    margin-top: 16px;
+    font-size: 18px;
+    font-weight: 620;
+    letter-spacing: -0.015em;
+  }
+  p {
+    margin-top: 9px;
+    font-size: 14.5px;
+    color: var(--text-dim);
+  }
+  @media (max-width: 860px) {
+    .steps {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

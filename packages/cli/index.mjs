@@ -1,14 +1,155 @@
 #!/usr/bin/env node
 // create-saas-harness — scaffold a Next.js + Supabase SaaS monorepo with a built-in agent harness.
+// Interactive by default; every choice is also a flag so the whole scaffold can run unattended:
+//   npx create-saas-harness my-saas --payments stripe --storage supabase --email resend --pm pnpm -y
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { parseArgs } from "node:util";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
 import { copyDir, pathExists, replaceTokensInFile, isTextFile } from "./lib/fs-utils.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
+
+// ---------------------------------------------------------------------------
+// The module matrix: one entry per scaffold-time choice. Everything the CLI
+// prunes/rewrites is declared here so adding a provider is a data change.
+// ---------------------------------------------------------------------------
+const CHOICES = {
+  payments: {
+    flag: "payments",
+    message: "Payments provider?",
+    initial: "stripe",
+    options: [
+      { value: "stripe", label: "Stripe", hint: "global default" },
+      { value: "mercadopago", label: "MercadoPago", hint: "LATAM" },
+    ],
+  },
+  storage: {
+    flag: "storage",
+    message: "Storage provider?",
+    initial: "supabase",
+    options: [
+      { value: "supabase", label: "Supabase Storage", hint: "zero extra keys — reuses your Supabase project" },
+      { value: "s3", label: "S3-compatible", hint: "Cloudflare R2 / AWS S3 / MinIO" },
+    ],
+  },
+  email: {
+    flag: "email",
+    message: "Transactional email?",
+    initial: "resend",
+    options: [
+      { value: "resend", label: "Resend", hint: "recommended" },
+      { value: "none", label: "None for now", hint: "mock only — add a provider later" },
+    ],
+  },
+  pm: {
+    flag: "pm",
+    message: "Package manager?",
+    initial: "pnpm",
+    options: [
+      { value: "pnpm", label: "pnpm", hint: "recommended" },
+      { value: "npm", label: "npm" },
+      { value: "yarn", label: "yarn" },
+      { value: "bun", label: "bun" },
+    ],
+  },
+};
+
+// What each choice re-exports from `<kind>/real.ts` in @app/integrations.
+const REAL_ADAPTERS = {
+  payments: {
+    stripe: { module: "./stripe", klass: "StripePaymentProvider", kind: "Payment", label: "Stripe" },
+    mercadopago: { module: "./mercadopago", klass: "MercadoPagoProvider", kind: "Payment", label: "MercadoPago" },
+  },
+  storage: {
+    supabase: { module: "./supabase", klass: "SupabaseStorageProvider", kind: "Storage", label: "Supabase Storage" },
+    s3: { module: "./s3", klass: "S3StorageProvider", kind: "Storage", label: "S3-compatible (R2/S3/MinIO)" },
+  },
+  email: {
+    resend: { module: "./resend", klass: "ResendProvider", kind: "Email", label: "Resend" },
+  },
+};
+
+const INTEGRATIONS_DIR = "packages/integrations/src";
+
+// Files + package.json dependencies that belong to UNCHOSEN providers.
+function pruneFor(config) {
+  const files = [];
+  const deps = [];
+  const dropPayment = config.payments === "stripe" ? "mercadopago" : "stripe";
+  files.push(`${INTEGRATIONS_DIR}/payment/${dropPayment}.ts`);
+  deps.push(dropPayment);
+  if (config.storage === "supabase") {
+    files.push(`${INTEGRATIONS_DIR}/storage/s3.ts`);
+    deps.push("@aws-sdk/client-s3", "@aws-sdk/s3-request-presigner");
+  } else {
+    files.push(`${INTEGRATIONS_DIR}/storage/supabase.ts`);
+    // The private bucket migration only makes sense for Supabase Storage.
+    files.push("supabase/migrations/20260101000002_storage.sql");
+  }
+  if (config.email === "none") {
+    files.push(`${INTEGRATIONS_DIR}/email/resend.ts`);
+    deps.push("resend");
+  }
+  return { files, deps };
+}
+
+function realTsContent(kindKey, choice) {
+  const KIND = { payments: "PAYMENT", storage: "STORAGE", email: "EMAIL" }[kindKey];
+  if (kindKey === "email" && choice === "none") {
+    return (
+      `// No real email provider was selected at scaffold time — email stays mock-first.\n` +
+      `// To add one later: drop an adapter in this folder (see the create-saas-harness template\n` +
+      `// for a Resend reference) and re-export it here with PROVIDER_NAME + isConfigured.\n` +
+      `export { MockEmailProvider as RealEmailProvider } from "./mock";\n` +
+      `export const REAL_EMAIL_PROVIDER = "mock";\n` +
+      `export const isRealEmailConfigured = (): boolean => false;\n`
+    );
+  }
+  const a = REAL_ADAPTERS[kindKey][choice];
+  return (
+    `// The "real" (non-mock) ${kindKey} provider, selected at scaffold time (${choice}).\n` +
+    `export {\n` +
+    `  ${a.klass} as Real${a.kind}Provider,\n` +
+    `  PROVIDER_NAME as REAL_${KIND}_PROVIDER,\n` +
+    `  isConfigured as isReal${a.kind}Configured,\n` +
+    `} from "${a.module}";\n`
+  );
+}
+
+// .env.example: keep only the blocks for chosen providers (marked `## >>> kind:choice`),
+// strip the marker lines themselves, and point the selectors at the choices.
+function applyEnvChoices(env, config) {
+  const keep = new Set([
+    `payments:${config.payments}`,
+    `storage:${config.storage}`,
+    ...(config.email === "resend" ? ["email:resend"] : []),
+  ]);
+  const out = [];
+  let dropping = false;
+  for (const line of env.split("\n")) {
+    const open = line.match(/^## >>> ([a-z0-9:_-]+)\s*$/);
+    const close = line.match(/^## <<< ([a-z0-9:_-]+)\s*$/);
+    if (open) {
+      dropping = !keep.has(open[1]);
+      continue;
+    }
+    if (close) {
+      dropping = false;
+      continue;
+    }
+    if (!dropping) out.push(line);
+  }
+  return out
+    .join("\n")
+    .replace(/^PAYMENTS_PROVIDER=.*$/m, `PAYMENTS_PROVIDER=${config.payments}`)
+    .replace(/^EMAIL_PROVIDER=.*$/m, `EMAIL_PROVIDER=${config.email === "none" ? "mock" : config.email}`)
+    .replace(/^STORAGE_PROVIDER=.*$/m, `STORAGE_PROVIDER=${config.storage}`)
+    .replace(/\n{3,}/g, "\n\n");
+}
 
 // Template lives bundled next to the CLI (published) or at repo root (in-repo dev).
 async function resolveTemplateDir() {
@@ -33,60 +174,138 @@ function bail(msg) {
   process.exit(1);
 }
 
-// Files/dirs that belong to the UNCHOSEN payment provider and should be pruned.
-function prunePaths(provider) {
-  const drop = provider === "stripe" ? "mercadopago" : "stripe";
-  return [
-    `packages/integrations/src/payment/${drop}.ts`,
-    `packages/integrations/src/payment/${drop}.test.ts`,
-    `packages/integrations/src/payment/__tests__/${drop}.test.ts`,
-  ];
+const HELP = `
+${pc.bold("create-saas-harness")} — Next.js + Supabase SaaS monorepo with a built-in agent harness.
+
+${pc.bold("Usage")}
+  npx create-saas-harness [directory] [options]
+
+${pc.bold("Options")}
+  --name <name>            Project name (defaults to the directory name)
+  --payments <provider>    stripe | mercadopago            (default: stripe)
+  --storage <provider>     supabase | s3                   (default: supabase)
+  --email <provider>       resend | none                   (default: resend)
+  --pm <manager>           pnpm | npm | yarn | bun         (default: pnpm)
+  --install / --no-install Install dependencies            (default: install)
+  --git / --no-git         git init + first commit         (default: git)
+  -y, --yes                Accept defaults for anything not passed (no prompts)
+  -h, --help               Show this help
+  --version                Show the CLI version
+
+${pc.bold("Examples")}
+  npx create-saas-harness
+  npx create-saas-harness my-saas -y
+  npx create-saas-harness my-saas --payments mercadopago --storage s3 --email none --pm pnpm -y
+`;
+
+function parseCliArgs() {
+  let parsed;
+  try {
+    parsed = parseArgs({
+      allowPositionals: true,
+      options: {
+        name: { type: "string" },
+        payments: { type: "string" },
+        storage: { type: "string" },
+        email: { type: "string" },
+        pm: { type: "string" },
+        install: { type: "boolean" },
+        "no-install": { type: "boolean" },
+        git: { type: "boolean" },
+        "no-git": { type: "boolean" },
+        yes: { type: "boolean", short: "y" },
+        help: { type: "boolean", short: "h" },
+        version: { type: "boolean" },
+      },
+    });
+  } catch (e) {
+    console.error(pc.red(`\n${e.message}`));
+    console.log(HELP);
+    process.exit(1);
+  }
+  const { values, positionals } = parsed;
+  for (const key of ["payments", "storage", "email", "pm"]) {
+    const val = values[key];
+    if (val !== undefined && !CHOICES[key].options.some((o) => o.value === val)) {
+      const valid = CHOICES[key].options.map((o) => o.value).join(" | ");
+      console.error(pc.red(`\nInvalid --${key} "${val}". Valid values: ${valid}`));
+      process.exit(1);
+    }
+  }
+  return { values, dir: positionals[0] };
+}
+
+async function promptOrDefault(flagValue, yes, ask, fallback) {
+  if (flagValue !== undefined) return flagValue;
+  if (yes) return fallback;
+  const answer = await ask();
+  if (p.isCancel(answer)) bail("Cancelled.");
+  return answer;
 }
 
 async function main() {
+  const { values: flags, dir: dirArg } = parseCliArgs();
+
+  if (flags.help) {
+    console.log(HELP);
+    return;
+  }
+  if (flags.version) {
+    const pkg = JSON.parse(await fs.readFile(path.join(here, "package.json"), "utf8"));
+    console.log(pkg.version);
+    return;
+  }
+
   console.log("");
   p.intro(pc.bgCyan(pc.black(" create-saas-harness ")));
 
-  const projectName = await p.text({
-    message: "Project name?",
-    placeholder: "my-saas",
-    validate: (v) => (v && v.trim().length >= 2 ? undefined : "Enter at least 2 characters."),
-  });
-  if (p.isCancel(projectName)) bail("Cancelled.");
+  const yes = Boolean(flags.yes);
 
-  const defaultDir = slugify(projectName);
-  const targetRel = await p.text({
-    message: "Directory to create it in?",
-    placeholder: `./${defaultDir}`,
-    defaultValue: `./${defaultDir}`,
-    initialValue: `./${defaultDir}`,
-  });
-  if (p.isCancel(targetRel)) bail("Cancelled.");
+  const projectName = await promptOrDefault(
+    flags.name ?? (dirArg ? path.basename(dirArg) : undefined),
+    yes,
+    () =>
+      p.text({
+        message: "Project name?",
+        placeholder: "my-saas",
+        validate: (v) => (v && v.trim().length >= 2 ? undefined : "Enter at least 2 characters."),
+      }),
+    "my-saas",
+  );
 
-  const payments = await p.select({
-    message: "Payments provider?",
-    options: [
-      { value: "stripe", label: "Stripe", hint: "global default" },
-      { value: "mercadopago", label: "MercadoPago", hint: "LATAM" },
-    ],
-    initialValue: "stripe",
-  });
-  if (p.isCancel(payments)) bail("Cancelled.");
+  const defaultDir = dirArg ?? `./${slugify(projectName)}`;
+  const targetRel = await promptOrDefault(
+    dirArg,
+    yes,
+    () =>
+      p.text({
+        message: "Directory to create it in?",
+        placeholder: defaultDir,
+        defaultValue: defaultDir,
+        initialValue: defaultDir,
+      }),
+    defaultDir,
+  );
 
-  const pm = await p.select({
-    message: "Package manager?",
-    options: [
-      { value: "pnpm", label: "pnpm", hint: "recommended" },
-      { value: "npm", label: "npm" },
-      { value: "yarn", label: "yarn" },
-      { value: "bun", label: "bun" },
-    ],
-    initialValue: "pnpm",
-  });
-  if (p.isCancel(pm)) bail("Cancelled.");
+  const config = {};
+  for (const key of ["payments", "storage", "email", "pm"]) {
+    const spec = CHOICES[key];
+    config[key] = await promptOrDefault(
+      flags[key],
+      yes,
+      () => p.select({ message: spec.message, options: spec.options, initialValue: spec.initial }),
+      spec.initial,
+    );
+  }
+  const pm = config.pm;
 
-  const doInstall = await p.confirm({ message: "Install dependencies now?", initialValue: true });
-  if (p.isCancel(doInstall)) bail("Cancelled.");
+  const doInstall = await promptOrDefault(
+    flags["no-install"] ? false : flags.install ? true : undefined,
+    yes,
+    () => p.confirm({ message: "Install dependencies now?", initialValue: true }),
+    true,
+  );
+  const doGit = flags["no-git"] ? false : true;
 
   const targetDir = path.resolve(process.cwd(), targetRel.replace(/^\.\//, ""));
   if (await pathExists(targetDir)) {
@@ -98,7 +317,9 @@ async function main() {
   const tokens = {
     "{{PROJECT_NAME}}": projectName,
     "{{PROJECT_SLUG}}": slug,
-    "{{PAYMENTS_PROVIDER}}": payments,
+    "{{PAYMENTS_PROVIDER}}": config.payments,
+    "{{STORAGE_PROVIDER}}": config.storage,
+    "{{EMAIL_PROVIDER}}": config.email === "none" ? "mock" : config.email,
   };
 
   const s = p.spinner();
@@ -137,41 +358,39 @@ async function main() {
   }
   s.stop("Harness wired");
 
-  // 3) Prune the unchosen payment adapter, repoint real.ts, set the provider in env, drop unused dep.
-  s.start("Configuring payments (" + payments + ")");
-  for (const rel of prunePaths(payments)) {
+  // 3) Assemble the chosen modules: prune unchosen adapters + deps, repoint the
+  //    real.ts re-exports, and rewrite .env.example to only show relevant keys.
+  s.start("Assembling modules");
+  const { files: pruneFiles, deps: pruneDeps } = pruneFor(config);
+  for (const rel of pruneFiles) {
     await fs.rm(path.join(targetDir, rel), { force: true }).catch(() => {});
   }
-  // Repoint the "real" adapter re-export to the chosen provider so the factory's import stays valid.
-  const realTs = path.join(targetDir, "packages/integrations/src/payment/real.ts");
-  if (await pathExists(realTs)) {
-    const klass = payments === "mercadopago" ? "MercadoPagoProvider" : "StripePaymentProvider";
-    const from = payments === "mercadopago" ? "./mercadopago" : "./stripe";
-    await fs.writeFile(
-      realTs,
-      `// The "real" (non-mock) payment provider, selected at scaffold time.\n` +
-        `export { ${klass} as RealPaymentProvider } from "${from}";\n`,
-    );
+  for (const [kindKey, rel] of [
+    ["payments", `${INTEGRATIONS_DIR}/payment/real.ts`],
+    ["storage", `${INTEGRATIONS_DIR}/storage/real.ts`],
+    ["email", `${INTEGRATIONS_DIR}/email/real.ts`],
+  ]) {
+    await fs.writeFile(path.join(targetDir, rel), realTsContent(kindKey, config[kindKey]));
   }
-  // Drop the unused payment SDK dependency.
   const integrationsPkg = path.join(targetDir, "packages/integrations/package.json");
   if (await pathExists(integrationsPkg)) {
     const pkg = JSON.parse(await fs.readFile(integrationsPkg, "utf8"));
-    const unused = payments === "stripe" ? "mercadopago" : "stripe";
-    if (pkg.dependencies) delete pkg.dependencies[unused];
+    for (const dep of pruneDeps) {
+      if (pkg.dependencies) delete pkg.dependencies[dep];
+    }
     await fs.writeFile(integrationsPkg, JSON.stringify(pkg, null, 2) + "\n");
   }
   const envExample = path.join(targetDir, ".env.example");
   if (await pathExists(envExample)) {
-    let env = await fs.readFile(envExample, "utf8");
-    if (/^PAYMENTS_PROVIDER=/m.test(env)) {
-      env = env.replace(/^PAYMENTS_PROVIDER=.*$/m, `PAYMENTS_PROVIDER=${payments}`);
-    } else {
-      env = `PAYMENTS_PROVIDER=${payments}\n` + env;
-    }
-    await fs.writeFile(envExample, env);
+    const env = await fs.readFile(envExample, "utf8");
+    await fs.writeFile(envExample, applyEnvChoices(env, config));
   }
-  s.stop("Payments configured");
+  const chosen = {
+    payments: REAL_ADAPTERS.payments[config.payments].label,
+    storage: REAL_ADAPTERS.storage[config.storage].label,
+    email: config.email === "none" ? "none (mock-first)" : REAL_ADAPTERS.email[config.email].label,
+  };
+  s.stop(`Modules assembled (${chosen.payments} · ${chosen.storage} · email: ${chosen.email})`);
 
   // 4) Ensure a root .gitignore exists (guards against publish stripping it).
   const gitignore = path.join(targetDir, ".gitignore");
@@ -193,22 +412,24 @@ async function main() {
   }
 
   // 6) git init + FIRST COMMIT.
-  s.start("Initializing git");
-  const git = (args) => spawnSync("git", args, { cwd: targetDir, stdio: "ignore" });
-  const ok =
-    git(["init", "-q"]).status === 0 &&
-    git(["add", "-A"]).status === 0 &&
-    git([
-      "-c",
-      "user.name=create-saas-harness",
-      "-c",
-      "user.email=noreply@create-saas-harness",
-      "commit",
-      "-q",
-      "-m",
-      "chore: scaffold from create-saas-harness",
-    ]).status === 0;
-  s.stop(ok ? "Git initialized (first commit created)" : pc.yellow("Git skipped — commit manually."));
+  if (doGit) {
+    s.start("Initializing git");
+    const git = (args) => spawnSync("git", args, { cwd: targetDir, stdio: "ignore" });
+    const ok =
+      git(["init", "-q"]).status === 0 &&
+      git(["add", "-A"]).status === 0 &&
+      git([
+        "-c",
+        "user.name=create-saas-harness",
+        "-c",
+        "user.email=noreply@create-saas-harness",
+        "commit",
+        "-q",
+        "-m",
+        "chore: scaffold from create-saas-harness",
+      ]).status === 0;
+    s.stop(ok ? "Git initialized (first commit created)" : pc.yellow("Git skipped — commit manually."));
+  }
 
   // 7) Next steps.
   const cd = path.relative(process.cwd(), targetDir) || ".";

@@ -12,7 +12,8 @@ describe("MockPaymentProvider", () => {
     expect(res.redirectUrl).toContain("/checkout/abc");
   });
 
-  it("parses a simulated webhook body", async () => {
+  it("parses a simulated webhook body when dev tools are enabled", async () => {
+    vi.stubEnv("DEV_TOOLS_ENABLED", "true");
     const p = new MockPaymentProvider();
     const req = new Request("http://x/api/webhooks/payments", {
       method: "POST",
@@ -20,5 +21,15 @@ describe("MockPaymentProvider", () => {
     });
     const parsed = await p.parseWebhook(req);
     expect(parsed).toMatchObject({ orderId: "abc", status: "paid", method: "card", feeCents: null });
+  });
+
+  it("rejects simulated webhooks when dev tools are disabled", async () => {
+    vi.stubEnv("DEV_TOOLS_ENABLED", "false");
+    const p = new MockPaymentProvider();
+    const req = new Request("http://x/api/webhooks/payments", {
+      method: "POST",
+      body: JSON.stringify({ orderId: "abc", status: "paid" }),
+    });
+    await expect(p.parseWebhook(req)).rejects.toThrow(/DEV_TOOLS_ENABLED/);
   });
 });

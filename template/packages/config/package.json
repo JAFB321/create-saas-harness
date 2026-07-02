@@ -9,8 +9,7 @@
     "./tsconfig/library.json": "./tsconfig/library.json",
     "./eslint/base": "./eslint/base.js",
     "./eslint/next": "./eslint/next.js",
-    "./prettier": "./prettier/index.js",
-    "./tailwind": "./tailwind/preset.js"
+    "./prettier": "./prettier/index.js"
   },
   "scripts": {
     "lint": "echo 'no lint for config'",

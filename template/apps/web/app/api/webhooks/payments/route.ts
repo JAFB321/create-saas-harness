@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import type { Plan } from "@app/core";
+import { PLAN_IDS, type Plan } from "@app/core";
 import { createServiceClient } from "@app/db";
-import { getPaymentProvider, OrderNotFoundError, settleOrder } from "@app/integrations";
+import { getPaymentProvider, logger, OrderNotFoundError, settleOrder } from "@app/integrations";
 
 /**
  * Payment webhook. Verifies + parses via the active provider, then runs the idempotent settle.
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { order } = await settleOrder(parsed.orderId, {
+    const { order, alreadySettled } = await settleOrder(parsed.orderId, {
       status: parsed.status,
       method: parsed.method,
       providerRef: parsed.providerRef,
@@ -33,15 +33,32 @@ export async function POST(req: Request) {
     });
 
     // Apply a plan upgrade when the paid order carries a plan in its metadata.
-    if (order.status === "paid" && order.user_id) {
+    // Only on the FIRST effective settle — replayed webhooks must not re-upsert subscriptions.
+    if (!alreadySettled && order.status === "paid" && order.user_id) {
       const meta = (order.metadata ?? {}) as { plan?: string };
-      if (meta.plan) {
+      if (meta.plan && !PLAN_IDS.includes(meta.plan as Plan)) {
+        // Metadata is attacker-influencable; never cast it into the plan enum unchecked.
+        logger.warn("webhook_unknown_plan", { orderId: order.id, plan: meta.plan });
+      } else if (meta.plan) {
+        const plan = meta.plan as Plan;
         const db = createServiceClient();
-        await db.from("profiles").update({ plan: meta.plan as Plan }).eq("id", order.user_id);
-        await db.from("subscriptions").upsert(
-          { user_id: order.user_id, plan: meta.plan as Plan, status: "active" },
-          { onConflict: "user_id" },
-        );
+        // supabase-js does not throw — check `error` and 500 so the provider retries
+        // (settleOrder is idempotent, so a retry is safe).
+        const { error: profileErr } = await db
+          .from("profiles")
+          .update({ plan })
+          .eq("id", order.user_id);
+        if (profileErr) {
+          logger.error("webhook_plan_apply_failed", { orderId: order.id, error: profileErr.message });
+          return NextResponse.json({ error: "plan apply failed" }, { status: 500 });
+        }
+        const { error: subErr } = await db
+          .from("subscriptions")
+          .upsert({ user_id: order.user_id, plan, status: "active" }, { onConflict: "user_id" });
+        if (subErr) {
+          logger.error("webhook_plan_apply_failed", { orderId: order.id, error: subErr.message });
+          return NextResponse.json({ error: "plan apply failed" }, { status: 500 });
+        }
       }
     }
 

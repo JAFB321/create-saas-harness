@@ -13,6 +13,10 @@ create policy "profiles: select own"
   on profiles for select using (auth.uid() = id);
 create policy "profiles: update own"
   on profiles for update using (auth.uid() = id) with check (auth.uid() = id);
+-- Column-level guard: users must NOT self-edit `plan`/`role` (privilege escalation);
+-- those only move via the service role (webhooks/admin). RLS alone can't restrict columns.
+revoke update on public.profiles from authenticated, anon;
+grant update (full_name) on public.profiles to authenticated;
 
 -- items: owner has full CRUD over their own items.
 create policy "items: select own"

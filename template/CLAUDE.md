@@ -1,7 +1,9 @@
 # {{PROJECT_NAME}}
 
 A SaaS built on **create-saas-harness**: a Next.js 15 + Supabase monorepo with a built-in agent
-harness. Mock-first (runs with no third-party keys). Payments via {{PAYMENTS_PROVIDER}}.
+harness. Mock-first (runs with no third-party keys). Scaffold-time providers: payments
+{{PAYMENTS_PROVIDER}}, storage {{STORAGE_PROVIDER}}, email {{EMAIL_PROVIDER}} — each wired via
+`packages/integrations/src/<kind>/real.ts`.
 
 > New here? See `INSTRUCTIONS.md` for the daily loop and `FOUNDATIONS/*` for what this product is.
 

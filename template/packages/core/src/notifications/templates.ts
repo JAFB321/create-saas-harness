@@ -10,6 +10,16 @@ export interface RenderedEmail {
   text: string;
 }
 
+/** Vars are user-provided (names, plan labels) — escape them before interpolating into HTML. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function layout(title: string, body: string): string {
   return `<!doctype html><html><body style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
 <h1 style="font-size:20px">${title}</h1>
@@ -20,23 +30,25 @@ ${body}
 }
 
 export function renderEmail(template: EmailTemplate, vars: Record<string, string>): RenderedEmail {
+  // Escaped view for HTML interpolation; subject/text stay raw (they are not HTML).
+  const h = Object.fromEntries(Object.entries(vars).map(([k, v]) => [k, escapeHtml(v)]));
   switch (template) {
     case "welcome":
       return {
         subject: `Welcome to {{PROJECT_NAME}}`,
-        html: layout("Welcome!", `<p>Hi ${vars.name ?? "there"}, your account is ready.</p>`),
+        html: layout("Welcome!", `<p>Hi ${h.name ?? "there"}, your account is ready.</p>`),
         text: `Welcome! Hi ${vars.name ?? "there"}, your account is ready.`,
       };
     case "payment_receipt":
       return {
         subject: `Your receipt`,
-        html: layout("Payment received", `<p>We received your payment of ${vars.amount ?? ""}.</p>`),
+        html: layout("Payment received", `<p>We received your payment of ${h.amount ?? ""}.</p>`),
         text: `Payment received: ${vars.amount ?? ""}.`,
       };
     case "subscription_started":
       return {
         subject: `Your ${vars.plan ?? ""} subscription is active`,
-        html: layout("Subscription active", `<p>Your ${vars.plan ?? ""} plan is now active.</p>`),
+        html: layout("Subscription active", `<p>Your ${h.plan ?? ""} plan is now active.</p>`),
         text: `Your ${vars.plan ?? ""} plan is now active.`,
       };
   }

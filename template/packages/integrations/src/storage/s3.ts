@@ -15,6 +15,17 @@ import type {
 } from "../types";
 import { ProviderConfigError } from "../errors";
 
+/** Env value that selects this provider + its readiness check (used by status.ts). */
+export const PROVIDER_NAME = "s3";
+export function isConfigured(): boolean {
+  return Boolean(
+    process.env.S3_ENDPOINT &&
+      process.env.S3_ACCESS_KEY_ID &&
+      process.env.S3_SECRET_ACCESS_KEY &&
+      process.env.S3_BUCKET,
+  );
+}
+
 /**
  * S3-compatible storage. Works with AWS S3, Cloudflare R2, and MinIO (local) — all via S3_ENDPOINT.
  * `path` is the object key within S3_BUCKET. Requires S3_ENDPOINT, S3_ACCESS_KEY_ID,

@@ -1,0 +1,862 @@
+---
+// The command builder: pick modules on the left, watch the exact npx command,
+// generated file tree and .env react on the right.
+---
+
+<section class="section" id="configure">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">Configurator</span>
+      <h2>Compose your stack. <span class="grad-text">Copy one command.</span></h2>
+      <p class="lead">
+        The CLI assembles the template deterministically: chosen adapters get wired, everything
+        else is pruned — code, SDK dependencies and env vars. What you pick here is exactly what
+        lands in your repo.
+      </p>
+    </div>
+
+    <div class="cfg-grid">
+      <!-- ────────────────────────────── options ────────────────────────────── -->
+      <div class="cfg-options reveal">
+        <div class="field">
+          <label class="field-label" for="cfg-name">Project name</label>
+          <div class="name-wrap">
+            <input
+              id="cfg-name"
+              type="text"
+              value="my-saas"
+              spellcheck="false"
+              autocomplete="off"
+              maxlength="40"
+            />
+            <span class="name-slug" id="cfg-slug" aria-hidden="true"></span>
+          </div>
+        </div>
+
+        <fieldset class="group" data-key="payments">
+          <legend>
+            Payments <span class="group-flag">--payments</span>
+          </legend>
+          <div class="cards">
+            <label class="card">
+              <input type="radio" name="payments" value="stripe" checked />
+              <span class="card-body">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="currentColor" stroke-width="1.6"></rect>
+                  <path d="M2.5 9.5h19" stroke="currentColor" stroke-width="1.6"></path>
+                  <path d="M6 14.5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                </svg>
+                <span class="card-text">
+                  <strong>Stripe</strong>
+                  <small>Global default · Checkout + webhooks</small>
+                </span>
+                <span class="card-check" aria-hidden="true"></span>
+              </span>
+            </label>
+            <label class="card">
+              <input type="radio" name="payments" value="mercadopago" />
+              <span class="card-body">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <ellipse cx="12" cy="12" rx="9.5" ry="7.5" stroke="currentColor" stroke-width="1.6"></ellipse>
+                  <path d="M7 12.5c1.5-2 3-2.5 4-1.5l1.5 1.5c1 1 2.5.5 4.5-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                </svg>
+                <span class="card-text">
+                  <strong>MercadoPago</strong>
+                  <small>LATAM · Checkout Pro + webhooks</small>
+                </span>
+                <span class="card-check" aria-hidden="true"></span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="group" data-key="storage">
+          <legend>
+            File storage <span class="group-flag">--storage</span>
+          </legend>
+          <div class="cards">
+            <label class="card">
+              <input type="radio" name="storage" value="supabase" checked />
+              <span class="card-body">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M13 2L4.5 13H11l-1 9L18.5 11H12l1-9z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                </svg>
+                <span class="card-text">
+                  <strong>Supabase Storage</strong>
+                  <small>Zero extra keys · private bucket migration</small>
+                </span>
+                <span class="card-check" aria-hidden="true"></span>
+              </span>
+            </label>
+            <label class="card">
+              <input type="radio" name="storage" value="s3" />
+              <span class="card-body">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M4 7c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3z" stroke="currentColor" stroke-width="1.6"></path>
+                  <path d="M4 7v10c0 1.7 3.6 3 8 3s8-1.3 8-3V7" stroke="currentColor" stroke-width="1.6"></path>
+                  <path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" stroke="currentColor" stroke-width="1.6"></path>
+                </svg>
+                <span class="card-text">
+                  <strong>S3-compatible</strong>
+                  <small>Cloudflare R2 · AWS S3 · MinIO</small>
+                </span>
+                <span class="card-check" aria-hidden="true"></span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="group" data-key="email">
+          <legend>
+            Transactional email <span class="group-flag">--email</span>
+          </legend>
+          <div class="cards">
+            <label class="card">
+              <input type="radio" name="email" value="resend" checked />
+              <span class="card-body">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" stroke-width="1.6"></rect>
+                  <path d="M3.5 7l8.5 6 8.5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+                <span class="card-text">
+                  <strong>Resend</strong>
+                  <small>Templates rendered in <code>@app/core</code></small>
+                </span>
+                <span class="card-check" aria-hidden="true"></span>
+              </span>
+            </label>
+            <label class="card">
+              <input type="radio" name="email" value="none" />
+              <span class="card-body">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"></circle>
+                  <path d="M8 12h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                </svg>
+                <span class="card-text">
+                  <strong>None for now</strong>
+                  <small>Mock-first · add a provider later</small>
+                </span>
+                <span class="card-check" aria-hidden="true"></span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="group" data-key="pm">
+          <legend>
+            Package manager <span class="group-flag">--pm</span>
+          </legend>
+          <div class="seg" role="radiogroup">
+            <label class="seg-item"><input type="radio" name="pm" value="pnpm" checked /><span>pnpm</span></label>
+            <label class="seg-item"><input type="radio" name="pm" value="npm" /><span>npm</span></label>
+            <label class="seg-item"><input type="radio" name="pm" value="yarn" /><span>yarn</span></label>
+            <label class="seg-item"><input type="radio" name="pm" value="bun" /><span>bun</span></label>
+          </div>
+        </fieldset>
+      </div>
+
+      <!-- ────────────────────────────── preview ────────────────────────────── -->
+      <div class="cfg-preview reveal">
+        <div class="window preview-window">
+          <div class="window-bar preview-bar">
+            <div class="tabs" role="tablist" aria-label="Preview">
+              <button class="tab active" role="tab" aria-selected="true" data-tab="command">Command</button>
+              <button class="tab" role="tab" aria-selected="false" data-tab="files">Files</button>
+              <button class="tab" role="tab" aria-selected="false" data-tab="env">.env</button>
+            </div>
+            <button class="copy-btn" id="copy-btn" aria-label="Copy command">
+              <svg class="ic-copy" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.4"></rect>
+                <path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2" stroke="currentColor" stroke-width="1.4"></path>
+              </svg>
+              <svg class="ic-check" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3 8.5l3.5 3.5L13 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+              <span class="copy-label">Copy</span>
+            </button>
+          </div>
+
+          <div class="pane active" data-pane="command">
+            <div class="cmd-pane">
+              <div class="cmd-line" id="cmd-line" aria-live="polite"></div>
+              <p class="cmd-hint">
+                Fully unattended — <code>-y</code> skips every prompt. Drop the flags to answer
+                interactively instead.
+              </p>
+              <div class="stack-chips" id="stack-chips"></div>
+            </div>
+          </div>
+
+          <div class="pane" data-pane="files">
+            <div class="tree" id="file-tree"></div>
+            <div class="tree-legend">
+              <span><i class="lg lg-mod"></i> your choice</span>
+              <span><i class="lg lg-core"></i> always included</span>
+            </div>
+          </div>
+
+          <div class="pane" data-pane="env">
+            <pre class="env-pre" id="env-pre"></pre>
+          </div>
+        </div>
+        <p class="preview-note">
+          Unchosen providers are <strong>pruned</strong>, not flagged off — their adapters, SDK
+          deps and env vars never touch your repo.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  type State = { name: string; payments: string; storage: string; email: string; pm: string };
+  const state: State = { name: "my-saas", payments: "stripe", storage: "supabase", email: "resend", pm: "pnpm" };
+
+  const slugify = (v: string) =>
+    v.toLowerCase().trim().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").replace(/-{2,}/g, "-") || "my-saas";
+
+  // ---- command --------------------------------------------------------------
+  const cmdLine = document.getElementById("cmd-line")!;
+  function commandString(): string {
+    const s = slugify(state.name);
+    return `npx create-saas-harness@latest ${s} --payments ${state.payments} --storage ${state.storage} --email ${state.email} --pm ${state.pm} -y`;
+  }
+  function renderCommand() {
+    const s = slugify(state.name);
+    const flag = (f: string, v: string) => `<span class="t-flag">${f}</span> <span class="t-val">${v}</span>`;
+    cmdLine.innerHTML =
+      `<span class="t-prompt">$</span> <span class="t-bin">npx</span> <span class="t-pkg">create-saas-harness@latest</span> ` +
+      `<span class="t-name">${s}</span> ` +
+      [flag("--payments", state.payments), flag("--storage", state.storage), flag("--email", state.email), flag("--pm", state.pm)].join(" ") +
+      ` <span class="t-flag">-y</span>`;
+  }
+
+  // ---- stack chips ----------------------------------------------------------
+  const LABELS: Record<string, Record<string, string>> = {
+    payments: { stripe: "Stripe", mercadopago: "MercadoPago" },
+    storage: { supabase: "Supabase Storage", s3: "R2 / S3 / MinIO" },
+    email: { resend: "Resend", none: "Email: mock-first" },
+  };
+  const chipsEl = document.getElementById("stack-chips")!;
+  function renderChips() {
+    const fixed = ["Next.js 15", "Supabase", "Turborepo", "Agent harness"];
+    const picked = [LABELS.payments![state.payments]!, LABELS.storage![state.storage]!, LABELS.email![state.email]!, state.pm];
+    chipsEl.innerHTML =
+      picked.map((c) => `<span class="chip chip-mod">${c}</span>`).join("") +
+      fixed.map((c) => `<span class="chip">${c}</span>`).join("");
+  }
+
+  // ---- file tree ------------------------------------------------------------
+  type Node = { label: string; depth: number; kind?: "mod" | "dir"; key?: string; note?: string };
+  function treeNodes(): Node[] {
+    const s = state;
+    const n: Node[] = [];
+    const push = (label: string, depth: number, kind?: Node["kind"], key?: string, note?: string) =>
+      n.push({ label, depth, kind, key, note });
+    push(slugify(s.name) + "/", 0, "dir");
+    push("apps/web/", 1, "dir", undefined, "Next.js 15 · auth · billing · CRUD");
+    push("packages/core/", 1, "dir", undefined, "pure domain + unit tests");
+    push("packages/db/", 1, "dir", undefined, "Supabase clients + types");
+    push("packages/integrations/src/", 1, "dir");
+    push("payment/", 2, "dir");
+    push(`${s.payments}.ts`, 3, "mod", `payment-${s.payments}`);
+    push("real.ts", 3, undefined, `payment-real-${s.payments}`, `→ ${s.payments}`);
+    push("mock.ts", 3);
+    push("storage/", 2, "dir");
+    push(`${s.storage}.ts`, 3, "mod", `storage-${s.storage}`);
+    push("real.ts", 3, undefined, `storage-real-${s.storage}`, `→ ${s.storage}`);
+    push("mock.ts", 3);
+    push("email/", 2, "dir");
+    if (s.email === "resend") {
+      push("resend.ts", 3, "mod", "email-resend");
+      push("real.ts", 3, undefined, "email-real-resend", "→ resend");
+    } else {
+      push("real.ts", 3, "mod", "email-real-mock", "→ mock (add later)");
+    }
+    push("mock.ts", 3);
+    push("supabase/migrations/", 1, "dir");
+    push("…init_schema.sql", 2);
+    push("…rls.sql", 2);
+    if (s.storage === "supabase") push("…storage.sql", 2, "mod", "mig-storage", "private bucket");
+    push("harness/", 1, "dir", undefined, "agents · commands · roadmap · docs");
+    push("FOUNDATIONS/", 1, "dir", undefined, "written by /project-setup");
+    push("CLAUDE.md", 1);
+    return n;
+  }
+  const treeEl = document.getElementById("file-tree")!;
+  let prevKeys = new Set<string>();
+  function renderTree() {
+    const nodes = treeNodes();
+    const keys = new Set(nodes.filter((x) => x.key).map((x) => x.key!));
+    treeEl.innerHTML = nodes
+      .map((x) => {
+        const fresh = x.key && !prevKeys.has(x.key) && prevKeys.size > 0 ? " fresh" : "";
+        const cls = `row${x.kind === "mod" ? " mod" : ""}${x.kind === "dir" ? " dir" : ""}${fresh}`;
+        const note = x.note ? `<span class="note">${x.note}</span>` : "";
+        return `<div class="${cls}" style="--d:${x.depth}"><span class="row-label">${x.label}</span>${note}</div>`;
+      })
+      .join("");
+    prevKeys = keys;
+  }
+
+  // ---- env preview ----------------------------------------------------------
+  const ENV_BLOCKS: Record<string, Record<string, string[]>> = {
+    payments: {
+      stripe: ["STRIPE_SECRET_KEY=", "STRIPE_WEBHOOK_SECRET="],
+      mercadopago: ["MERCADOPAGO_ACCESS_TOKEN=", "MERCADOPAGO_WEBHOOK_SECRET="],
+    },
+    storage: {
+      supabase: ["STORAGE_BUCKET=uploads"],
+      s3: ["S3_ENDPOINT=", "S3_REGION=auto", "S3_ACCESS_KEY_ID=", "S3_SECRET_ACCESS_KEY=", "S3_BUCKET="],
+    },
+    email: {
+      resend: ["RESEND_API_KEY=", 'EMAIL_FROM="My SaaS <onboarding@resend.dev>"'],
+      none: [],
+    },
+  };
+  const envEl = document.getElementById("env-pre")!;
+  const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  function renderEnv() {
+    const c = (t: string) => `<span class="e-comment"># ${t}</span>`;
+    const block = (lines: string[]) => (lines.length ? ["", ...lines.map(esc)] : []);
+    const lines = [
+      c("mock-first: everything runs with NO keys set"),
+      "NEXT_PUBLIC_SUPABASE_URL=",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY=",
+      "SUPABASE_SERVICE_ROLE_KEY=",
+      "",
+      `PAYMENTS_PROVIDER=<b>${state.payments}</b>`,
+      `EMAIL_PROVIDER=<b>${state.email === "none" ? "mock" : state.email}</b>`,
+      `STORAGE_PROVIDER=<b>${state.storage}</b>`,
+      ...block(ENV_BLOCKS.payments![state.payments]!),
+      ...block(ENV_BLOCKS.storage![state.storage]!),
+      ...block(ENV_BLOCKS.email![state.email]!),
+    ];
+    envEl.innerHTML = lines.join("\n");
+  }
+
+  function renderAll() {
+    renderCommand();
+    renderChips();
+    renderTree();
+    renderEnv();
+  }
+
+  // ---- wiring ---------------------------------------------------------------
+  const nameInput = document.getElementById("cfg-name") as HTMLInputElement;
+  const slugEl = document.getElementById("cfg-slug")!;
+  function syncSlug() {
+    const s = slugify(nameInput.value);
+    slugEl.textContent = s !== nameInput.value.trim() ? `→ ${s}` : "";
+  }
+  nameInput.addEventListener("input", () => {
+    state.name = nameInput.value;
+    syncSlug();
+    renderAll();
+  });
+
+  document.querySelectorAll<HTMLInputElement>('.cfg-options input[type="radio"]').forEach((r) => {
+    r.addEventListener("change", () => {
+      (state as Record<string, string>)[r.name] = r.value;
+      renderAll();
+    });
+  });
+
+  // tabs
+  const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>(".tab"));
+  const panes = Array.from(document.querySelectorAll<HTMLElement>(".pane"));
+  tabs.forEach((t) =>
+    t.addEventListener("click", () => {
+      tabs.forEach((x) => {
+        x.classList.toggle("active", x === t);
+        x.setAttribute("aria-selected", String(x === t));
+      });
+      panes.forEach((p) => p.classList.toggle("active", p.dataset.pane === t.dataset.tab));
+    }),
+  );
+
+  // copy
+  const copyBtn = document.getElementById("copy-btn")!;
+  copyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(commandString());
+      copyBtn.classList.add("copied");
+      copyBtn.querySelector(".copy-label")!.textContent = "Copied!";
+      setTimeout(() => {
+        copyBtn.classList.remove("copied");
+        copyBtn.querySelector(".copy-label")!.textContent = "Copy";
+      }, 1600);
+    } catch {
+      /* clipboard denied — the command is selectable text anyway */
+    }
+  });
+
+  syncSlug();
+  renderAll();
+  prevKeys = new Set(treeNodes().filter((x) => x.key).map((x) => x.key!)); // no flash on first paint
+</script>
+
+<style>
+  .cfg-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.08fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  /* options column */
+  .field-label,
+  .group legend {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--text);
+    margin-bottom: 10px;
+    padding: 0;
+  }
+  .group-flag {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 400;
+    color: var(--text-faint);
+  }
+  .group {
+    border: none;
+    padding: 0;
+    margin: 26px 0 0;
+  }
+  .name-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  #cfg-name {
+    width: 100%;
+    background: var(--bg-elev);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  #cfg-name:focus {
+    border-color: rgba(34, 211, 238, 0.55);
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.14);
+  }
+  .name-slug {
+    position: absolute;
+    right: 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    pointer-events: none;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .card input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .card-body {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 15px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition:
+      border-color 0.2s ease,
+      background 0.2s ease,
+      transform 0.18s var(--ease-spring),
+      box-shadow 0.25s ease;
+  }
+  .card-body:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-elev-2);
+    transform: translateY(-1px);
+  }
+  .card input:focus-visible + .card-body {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .card input:checked + .card-body {
+    border-color: rgba(34, 211, 238, 0.5);
+    background:
+      linear-gradient(var(--bg-elev-2), var(--bg-elev-2)) padding-box,
+      linear-gradient(120deg, rgba(34, 211, 238, 0.65), rgba(167, 139, 250, 0.65)) border-box;
+    border: 1px solid transparent;
+    box-shadow: 0 0 26px -10px rgba(34, 211, 238, 0.35);
+  }
+  .card-icon {
+    width: 24px;
+    height: 24px;
+    flex: none;
+    color: var(--text-faint);
+    transition: color 0.2s ease;
+  }
+  .card input:checked + .card-body .card-icon {
+    color: var(--accent);
+  }
+  .card-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  .card-text strong {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .card-text small {
+    font-size: 12px;
+    color: var(--text-faint);
+    line-height: 1.45;
+  }
+  .card-text code {
+    font-size: 11px;
+  }
+  .card-check {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-strong);
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.25s var(--ease-spring);
+  }
+  .card input:checked + .card-body .card-check {
+    background: var(--gradient);
+    border-color: transparent;
+    transform: scale(1.05);
+  }
+  .card input:checked + .card-body .card-check::after {
+    content: "";
+    position: absolute;
+    inset: 4px 3.5px;
+    border: solid #0b0b10;
+    border-width: 0 0 2px 2px;
+    transform: rotate(-45deg) translateY(-1px);
+  }
+
+  .seg {
+    display: inline-flex;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    gap: 4px;
+  }
+  .seg-item {
+    position: relative;
+  }
+  .seg-item input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .seg-item span {
+    display: block;
+    padding: 7px 16px;
+    border-radius: 7px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition:
+      background 0.18s ease,
+      color 0.18s ease;
+  }
+  .seg-item span:hover {
+    color: var(--text);
+  }
+  .seg-item input:checked + span {
+    background: rgba(34, 211, 238, 0.13);
+    color: var(--accent);
+  }
+  .seg-item input:focus-visible + span {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  /* preview column */
+  .cfg-preview {
+    position: sticky;
+    top: 84px;
+  }
+  .preview-bar {
+    justify-content: space-between;
+    padding: 8px 10px 8px 14px;
+  }
+  .tabs {
+    display: flex;
+    gap: 4px;
+  }
+  .tab {
+    padding: 6px 13px;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--text-faint);
+    transition:
+      color 0.18s ease,
+      background 0.18s ease;
+  }
+  .tab:hover {
+    color: var(--text-dim);
+  }
+  .tab.active {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.07);
+  }
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 13px;
+    border-radius: 8px;
+    border: 1px solid var(--border-strong);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    background: rgba(255, 255, 255, 0.03);
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease,
+      background 0.2s ease;
+  }
+  .copy-btn:hover {
+    color: var(--text);
+    border-color: rgba(34, 211, 238, 0.5);
+  }
+  .copy-btn .ic-check {
+    display: none;
+  }
+  .copy-btn.copied {
+    color: var(--green);
+    border-color: rgba(74, 222, 128, 0.4);
+    background: rgba(74, 222, 128, 0.08);
+  }
+  .copy-btn.copied .ic-copy {
+    display: none;
+  }
+  .copy-btn.copied .ic-check {
+    display: block;
+  }
+
+  .pane {
+    display: none;
+    min-height: 430px;
+  }
+  .pane.active {
+    display: block;
+    animation: pane-in 0.28s var(--ease-spring);
+  }
+  @keyframes pane-in {
+    from {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pane.active {
+      animation: none;
+    }
+  }
+
+  .cmd-pane {
+    padding: 26px 24px;
+  }
+  .cmd-line {
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    line-height: 1.9;
+    word-break: break-all;
+    padding: 18px 20px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .cmd-line :global(.t-prompt) {
+    color: var(--text-faint);
+  }
+  .cmd-line :global(.t-bin) {
+    color: var(--green);
+  }
+  .cmd-line :global(.t-pkg) {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .cmd-line :global(.t-name) {
+    color: var(--amber);
+  }
+  .cmd-line :global(.t-flag) {
+    color: var(--text-faint);
+  }
+  .cmd-line :global(.t-val) {
+    color: var(--accent);
+  }
+  .cmd-hint {
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+  .cmd-hint code {
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+  .stack-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 22px;
+  }
+  .stack-chips :global(.chip) {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--text-dim);
+    padding: 5px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .stack-chips :global(.chip-mod) {
+    color: var(--accent);
+    border-color: rgba(34, 211, 238, 0.35);
+    background: rgba(34, 211, 238, 0.06);
+  }
+
+  .tree {
+    padding: 20px 22px 8px;
+    font-family: var(--font-mono);
+    font-size: 12.8px;
+    line-height: 2;
+  }
+  .tree :global(.row) {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding-left: calc(var(--d) * 18px);
+    color: var(--text-dim);
+    border-radius: 6px;
+  }
+  .tree :global(.row.dir) {
+    color: var(--text);
+  }
+  .tree :global(.row .row-label)::before {
+    content: "├─ ";
+    color: var(--text-faint);
+    opacity: 0.5;
+  }
+  .tree :global(.row[style*="--d:0"] .row-label)::before {
+    content: "";
+  }
+  .tree :global(.row.mod) {
+    color: var(--accent);
+  }
+  .tree :global(.row .note) {
+    font-size: 11px;
+    color: var(--text-faint);
+  }
+  .tree :global(.row.mod .note) {
+    color: rgba(34, 211, 238, 0.7);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .tree :global(.row.fresh) {
+      animation: flash 1.1s ease;
+    }
+  }
+  @keyframes flash {
+    0% {
+      background: rgba(34, 211, 238, 0.18);
+    }
+    100% {
+      background: transparent;
+    }
+  }
+  .tree-legend {
+    display: flex;
+    gap: 20px;
+    padding: 12px 22px 18px;
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  .tree-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .lg {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .lg-mod {
+    background: var(--accent);
+  }
+  .lg-core {
+    background: var(--text-faint);
+  }
+
+  .env-pre {
+    margin: 0;
+    padding: 22px 24px;
+    font-size: 12.8px;
+    line-height: 1.95;
+    color: var(--text-dim);
+    white-space: pre-wrap;
+  }
+  .env-pre :global(b) {
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .env-pre :global(.e-comment) {
+    color: var(--text-faint);
+  }
+
+  .preview-note {
+    margin-top: 16px;
+    font-size: 13.5px;
+    color: var(--text-faint);
+    text-align: center;
+  }
+  .preview-note strong {
+    color: var(--text-dim);
+  }
+
+  @media (max-width: 920px) {
+    .cfg-grid {
+      grid-template-columns: 1fr;
+    }
+    .cfg-preview {
+      position: static;
+    }
+    .cards {
+      grid-template-columns: 1fr;
+    }
+    .pane {
+      min-height: 0;
+    }
+  }
+</style>

@@ -1,0 +1,257 @@
+/* ---------------------------------------------------------------------------
+   create-saas-harness landing — design tokens + base.
+   Dark, dev-tool aesthetic. Single accent gradient (cyan → violet).
+--------------------------------------------------------------------------- */
+
+:root {
+  --bg: #09090d;
+  --bg-elev: #0f0f15;
+  --bg-elev-2: #14141c;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.13);
+  --text: #ececf1;
+  --text-dim: #a0a0b2;
+  --text-faint: #62626f;
+  --accent: #22d3ee;
+  --accent-2: #a78bfa;
+  --gradient: linear-gradient(100deg, var(--accent), var(--accent-2));
+  --green: #4ade80;
+  --amber: #fbbf24;
+  --red: #f87171;
+  --radius: 12px;
+  --radius-lg: 18px;
+  --font-sans:
+    "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono:
+    "JetBrains Mono Variable", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* Ambient background: two soft glows + a faint grid that fades out downward. */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.ambient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(600px 380px at 50% -80px, rgba(34, 211, 238, 0.13), transparent 70%),
+    radial-gradient(700px 500px at 85% 30%, rgba(167, 139, 250, 0.07), transparent 70%),
+    radial-gradient(600px 500px at 10% 85%, rgba(34, 211, 238, 0.05), transparent 70%);
+}
+.ambient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 90% 55% at 50% 0%, black 30%, transparent 100%);
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.28);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+code,
+kbd,
+pre {
+  font-family: var(--font-mono);
+}
+
+.container {
+  width: min(1120px, calc(100% - 48px));
+  margin-inline: auto;
+}
+
+.section {
+  padding-block: 96px;
+}
+
+.section-head {
+  max-width: 620px;
+  margin-bottom: 48px;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+.kicker::before {
+  content: "";
+  width: 20px;
+  height: 1px;
+  background: var(--gradient);
+}
+
+h2 {
+  font-size: clamp(26px, 4vw, 36px);
+  font-weight: 640;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.lead {
+  color: var(--text-dim);
+  margin-top: 14px;
+  font-size: 17px;
+}
+
+.grad-text {
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Shared "window" chrome (terminal / preview panels). */
+.window {
+  background: linear-gradient(180deg, var(--bg-elev-2), var(--bg-elev));
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 24px 60px -24px rgba(0, 0, 0, 0.7),
+    0 0 80px -30px rgba(34, 211, 238, 0.14);
+  overflow: hidden;
+}
+.window-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+.window-bar .dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+}
+.window-bar .dot:first-child {
+  background: #ff5f57;
+}
+.window-bar .dot:nth-child(2) {
+  background: #febc2e;
+}
+.window-bar .dot:nth-child(3) {
+  background: #28c840;
+}
+.window-title {
+  margin-left: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-weight: 560;
+  font-size: 15px;
+  transition:
+    transform 0.18s var(--ease-spring),
+    box-shadow 0.25s ease,
+    background 0.25s ease,
+    border-color 0.25s ease;
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn-primary {
+  background: var(--text);
+  color: #0b0b10;
+  box-shadow: 0 0 0 0 rgba(34, 211, 238, 0);
+}
+.btn-primary:hover {
+  box-shadow:
+    0 0 24px -4px rgba(34, 211, 238, 0.5),
+    0 0 60px -12px rgba(167, 139, 250, 0.4);
+  transform: translateY(-1px);
+}
+.btn-ghost {
+  border: 1px solid var(--border-strong);
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.02);
+}
+.btn-ghost:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Reveal-on-scroll (JS adds .in; no-JS and reduced-motion stay visible). */
+.reveal {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .js .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.7s ease,
+      transform 0.7s var(--ease-spring);
+  }
+  .js .reveal.in {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .section {
+    padding-block: 64px;
+  }
+}

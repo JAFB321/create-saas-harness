@@ -1,7 +1,8 @@
 # {{PROJECT_NAME}}
 
 A Next.js 15 + Supabase SaaS, scaffolded with
-[create-saas-harness](https://github.com/) — a monorepo with a built-in, agents-powered dev harness.
+[create-saas-harness](https://github.com/JAFB321/create-saas-harness) — a monorepo with a built-in,
+agents-powered dev harness.
 
 ## Quick start
 
@@ -11,9 +12,10 @@ cp .env.example .env.local      # fill in your Supabase keys (local stack or a p
 pnpm dev                        # http://localhost:3000
 ```
 
-Payments, email, and storage run **mock-first** (no keys needed). Supabase (auth + Postgres) is the
-backend, so you do need a Supabase URL + keys — use a hosted project or the local stack
-(`supabase start`).
+Payments, email, and storage run **mock-first** (no keys needed). Your scaffold-time providers —
+payments `{{PAYMENTS_PROVIDER}}`, storage `{{STORAGE_PROVIDER}}`, email `{{EMAIL_PROVIDER}}` —
+activate as soon as their keys land in `.env.local`. Supabase (auth + Postgres) is the backend, so
+you do need a Supabase URL + keys — use a hosted project or the local stack (`supabase start`).
 
 ## Next steps
 

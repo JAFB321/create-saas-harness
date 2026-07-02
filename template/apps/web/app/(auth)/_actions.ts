@@ -8,6 +8,13 @@ export interface AuthState {
   error?: string;
 }
 
+/** Only same-origin paths: "/x" is fine, "//evil.com" is a protocol-relative open redirect. */
+function safeNext(value: FormDataEntryValue | null): string {
+  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//")
+    ? value
+    : "/dashboard";
+}
+
 export async function loginAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
@@ -18,7 +25,7 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
   const supabase = await createServerClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return { error: error.message };
-  redirect("/dashboard");
+  redirect(safeNext(formData.get("next")));
 }
 
 export async function signupAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
@@ -30,12 +37,15 @@ export async function signupAction(_prev: AuthState, formData: FormData): Promis
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
 
   const supabase = await createServerClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: { data: { full_name: parsed.data.fullName } },
   });
   if (error) return { error: error.message };
+  // With email confirmation enabled (hosted default) signUp returns NO session — the user must
+  // confirm first, so send them to login with a notice instead of a dead /dashboard redirect.
+  if (!data.session) redirect("/login?message=confirm-email");
   redirect("/dashboard");
 }
 

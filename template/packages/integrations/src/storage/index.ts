@@ -1,3 +1,3 @@
 export { MockStorageProvider } from "./mock";
-export { S3StorageProvider } from "./s3";
+export { RealStorageProvider } from "./real";
 export { getStorageProvider } from "../factory";
