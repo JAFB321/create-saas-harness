@@ -1,0 +1,307 @@
+---
+const GITHUB = "https://github.com/JAFB321/create-saas-harness";
+---
+
+<section class="hero" id="top">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <a class="badge" href={GITHUB} target="_blank" rel="noopener">
+          <span class="badge-dot"></span>
+          Open source · MIT · <code>npx create-saas-harness</code>
+        </a>
+        <h1>
+          Ship a SaaS with an <span class="grad-text">agent&nbsp;harness</span> built&nbsp;in.
+        </h1>
+        <p class="sub">
+          A Next.js 15 + Supabase monorepo that comes with the machinery to plan and build
+          <em>your</em> product — specialized subagents, slash commands, an executable roadmap, and
+          deterministic guards. You don't get a boilerplate. You get a boilerplate that
+          <strong>builds itself from 0&nbsp;to&nbsp;100</strong>.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#configure">
+            Compose your stack
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path
+                d="M3 8h10M9 4l4 4-4 4"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+            </svg>
+          </a>
+          <a class="btn btn-ghost" href="#how">How it works</a>
+        </div>
+        <ul class="trust">
+          <li>Next.js 15 · React 19</li>
+          <li>Supabase + RLS</li>
+          <li>Mock-first — zero keys to run</li>
+          <li>Claude Code native</li>
+        </ul>
+      </div>
+
+      <div class="hero-term reveal">
+        <div class="window" id="hero-terminal" aria-label="Terminal demo of the scaffolder">
+          <div class="window-bar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="window-title">~/dev</span>
+          </div>
+          <div class="term-body" aria-live="off">
+            <div class="term-line">
+              <span class="prompt">$</span>
+              <span class="cmd" id="typed-cmd"></span><span class="caret" id="caret"></span>
+            </div>
+            <div class="term-out" id="term-out"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const CMD = "npx create-saas-harness@latest";
+  const LINES: Array<[string, string]> = [
+    ["head", "┌  create-saas-harness"],
+    ["q", "◇  Project name? · my-saas"],
+    ["q", "◇  Payments provider? · Stripe"],
+    ["q", "◇  Storage provider? · Supabase Storage"],
+    ["q", "◇  Transactional email? · Resend"],
+    ["ok", "◇  Template copied"],
+    ["ok", "◇  Harness wired"],
+    ["ok", "◇  Modules assembled (Stripe · Supabase Storage · email: Resend)"],
+    ["ok", "◇  Dependencies installed"],
+    ["ok", "◇  Git initialized (first commit created)"],
+    ["end", "└  Ready. Build something great."],
+  ];
+
+  const cmdEl = document.getElementById("typed-cmd")!;
+  const outEl = document.getElementById("term-out")!;
+  const caret = document.getElementById("caret")!;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function renderAll() {
+    cmdEl.textContent = CMD;
+    outEl.innerHTML = "";
+    for (const [kind, text] of LINES) {
+      const div = document.createElement("div");
+      div.className = `out-line ${kind}`;
+      div.textContent = text;
+      outEl.appendChild(div);
+    }
+    caret.remove();
+  }
+
+  async function play() {
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    await sleep(500);
+    for (let i = 0; i < CMD.length; i++) {
+      cmdEl.textContent += CMD[i];
+      await sleep(24 + Math.random() * 40);
+    }
+    await sleep(350);
+    caret.style.display = "none";
+    for (const [kind, text] of LINES) {
+      const div = document.createElement("div");
+      div.className = `out-line ${kind} pop`;
+      div.textContent = text;
+      outEl.appendChild(div);
+      await sleep(kind === "q" ? 340 : 210);
+    }
+  }
+
+  if (reduced) {
+    renderAll();
+  } else {
+    const term = document.getElementById("hero-terminal")!;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          play();
+        }
+      },
+      { threshold: 0.4 },
+    );
+    io.observe(term);
+  }
+</script>
+
+<style>
+  .hero {
+    padding: 92px 0 110px;
+    position: relative;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 56px;
+    align-items: center;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    color: var(--text-dim);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    transition:
+      border-color 0.25s ease,
+      color 0.25s ease;
+  }
+  .badge:hover {
+    border-color: rgba(34, 211, 238, 0.45);
+    color: var(--text);
+  }
+  .badge code {
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 10px var(--green);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    50% {
+      opacity: 0.45;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .badge-dot {
+      animation: none;
+    }
+  }
+  h1 {
+    margin-top: 26px;
+    font-size: clamp(34px, 5.4vw, 56px);
+    font-weight: 680;
+    letter-spacing: -0.032em;
+    line-height: 1.07;
+    max-width: 12ch;
+    text-wrap: balance;
+  }
+  .sub {
+    margin-top: 22px;
+    max-width: 520px;
+    color: var(--text-dim);
+    font-size: 17.5px;
+  }
+  .sub em {
+    color: var(--text);
+    font-style: italic;
+  }
+  .sub strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .cta-row {
+    display: flex;
+    gap: 14px;
+    margin-top: 34px;
+    flex-wrap: wrap;
+  }
+  .trust {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin: 38px 0 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--text-faint);
+  }
+  .trust li::before {
+    content: "▸ ";
+    color: var(--accent);
+  }
+
+  .term-body {
+    padding: 18px 20px 22px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.75;
+    min-height: 330px;
+  }
+  .term-line {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+  }
+  .prompt {
+    color: var(--accent);
+  }
+  .cmd {
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .caret {
+    display: inline-block;
+    width: 8px;
+    height: 15px;
+    background: var(--accent);
+    transform: translateY(2px);
+    animation: blink 1.05s steps(1) infinite;
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+  .term-out {
+    margin-top: 8px;
+  }
+  :global(.out-line) {
+    color: var(--text-dim);
+    white-space: pre-wrap;
+    /* hanging indent so wrapped lines align under the text, not under the glyph */
+    padding-left: 1.6em;
+    text-indent: -1.6em;
+  }
+  :global(.out-line.head),
+  :global(.out-line.end) {
+    color: var(--text-faint);
+  }
+  :global(.out-line.q) {
+    color: var(--text);
+  }
+  :global(.out-line.ok) {
+    color: var(--green);
+  }
+  :global(.out-line.end) {
+    color: var(--accent);
+    margin-top: 4px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.out-line.pop) {
+      animation: rise 0.32s var(--ease-spring);
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+
+  @media (max-width: 920px) {
+    .hero {
+      padding-top: 56px;
+    }
+    .hero-grid {
+      grid-template-columns: 1fr;
+      gap: 44px;
+    }
+    .term-body {
+      min-height: 0;
+    }
+  }
+</style>

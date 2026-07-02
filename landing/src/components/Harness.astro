@@ -1,0 +1,119 @@
+---
+const features = [
+  {
+    title: "Orchestrator–workers loop",
+    body: "The main session orchestrates; dev-agent (Sonnet) and dev-agent-pro (Opus) implement, a verifier runs the task's tests, a reviewer audits the diff in fresh context. A task is done only with verify green AND review approval.",
+    icon: "M4 6h16M4 12h10M4 18h7",
+  },
+  {
+    title: "Front-loaded decision gate",
+    body: "Every session starts by asking you all of the MVP's open questions at once — pricing, wiring, design calls. Answer them, walk away, and the loop runs autonomously. It never blocks mid-run.",
+    icon: "M12 3v6m0 0l3-3m-3 3L9 6m3 9v6m-7-9h14",
+  },
+  {
+    title: "Executable roadmap",
+    body: "/project-setup writes mvp-*.json with sprints, tasks and per-task verification specs — plus a local dashboard (pnpm roadmap) to watch progress. Agents pick up tasks; percentages compute themselves.",
+    icon: "M4 19V5m0 14h16M8 15l3-4 3 2 4-6",
+  },
+  {
+    title: "Committed design system",
+    body: "Setup commits .impeccable/design.json + DESIGN.md + real tokens in globals.css. UI tasks read it as a contract, so generated screens share one deliberate look — no placeholder aesthetic.",
+    icon: "M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z",
+  },
+  {
+    title: "Deterministic guards",
+    body: "Hooks the agent cannot bypass: a Stop hook type-checks after every response; a PreToolUse guard blocks force-pushes, dangerous rm -rf, .env edits and touching applied migrations.",
+    icon: "M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z",
+  },
+  {
+    title: "Mock-first integrations",
+    body: "Payments, email and storage sit behind interfaces with mock defaults — the app runs with zero third-party keys from commit one. Real providers activate the moment their keys land in .env.local.",
+    icon: "M8 9l-4 3 4 3m8-6l4 3-4 3M13 5l-2 14",
+  },
+];
+---
+
+<section class="section" id="harness">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">The harness</span>
+      <h2>Not a boilerplate. <span class="grad-text">A build system for your product.</span></h2>
+      <p class="lead">
+        <code>harness/</code> ships agents, slash commands, machine-readable state and guards — the
+        operating manual an AI coding agent needs to take your roadmap from task to shipped,
+        without you babysitting it.
+      </p>
+    </div>
+    <div class="feat-grid">
+      {
+        features.map((f) => (
+          <article class="feat reveal">
+            <div class="feat-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d={f.icon}
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <h3>{f.title}</h3>
+            <p>{f.body}</p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .feat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  .feat {
+    padding: 24px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    transition:
+      border-color 0.25s ease,
+      background 0.25s ease;
+  }
+  .feat:hover {
+    border-color: rgba(34, 211, 238, 0.28);
+    background: var(--bg-elev-2);
+  }
+  .feat-icon {
+    display: inline-flex;
+    padding: 9px;
+    border-radius: 10px;
+    color: var(--accent);
+    background: rgba(34, 211, 238, 0.08);
+    border: 1px solid rgba(34, 211, 238, 0.15);
+  }
+  h3 {
+    margin-top: 15px;
+    font-size: 15.5px;
+    font-weight: 620;
+    letter-spacing: -0.01em;
+  }
+  p {
+    margin-top: 7px;
+    font-size: 13.8px;
+    color: var(--text-dim);
+    line-height: 1.62;
+  }
+  .lead code {
+    font-size: 14px;
+    color: var(--accent);
+  }
+  @media (max-width: 860px) {
+    .feat-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

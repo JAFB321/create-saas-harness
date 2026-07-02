@@ -1,0 +1,45 @@
+---
+import "@fontsource-variable/inter";
+import "@fontsource-variable/jetbrains-mono";
+import "../styles/global.css";
+
+const title = "create-saas-harness — an agents-powered SaaS starter";
+const description =
+  "Compose a Next.js 15 + Supabase SaaS monorepo with a built-in AI agent harness. Pick your payments, storage and email providers — get the exact npx command, ready to build from 0 to 100.";
+---
+
+<!doctype html>
+<html lang="en" class="js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="theme-color" content="#09090d" />
+  </head>
+  <body>
+    <div class="ambient" aria-hidden="true"></div>
+    <slot />
+    <script>
+      // Reveal-on-scroll. The .js class on <html> gates the hidden initial state,
+      // so content is never invisible without JavaScript.
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              e.target.classList.add("in");
+              io.unobserve(e.target);
+            }
+          }
+        },
+        { threshold: 0.12 },
+      );
+      document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+    </script>
+  </body>
+</html>
