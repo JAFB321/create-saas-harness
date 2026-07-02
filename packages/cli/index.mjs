@@ -151,6 +151,22 @@ function applyEnvChoices(env, config) {
     .replace(/\n{3,}/g, "\n\n");
 }
 
+// The bundled template ships .gitignore/.npmrc as _gitignore/_npmrc (npm pack strips the
+// dot-named originals from tarballs); restore them after copying. No-op for in-repo dev,
+// where the template still has the dot-named files.
+async function restoreDotfiles(dir) {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const p = path.join(dir, entry.name);
+    if (entry.isDirectory()) await restoreDotfiles(p);
+    else if (entry.name === "_gitignore" || entry.name === "_npmrc") {
+      const dotted = path.join(dir, "." + entry.name.slice(1));
+      if (await pathExists(dotted)) await fs.rm(p, { force: true });
+      else await fs.rename(p, dotted);
+    }
+  }
+}
+
 // Template lives bundled next to the CLI (published) or at repo root (in-repo dev).
 async function resolveTemplateDir() {
   const bundled = path.join(here, "template");
@@ -335,6 +351,7 @@ async function main() {
       if (isTextFile(abs)) await replaceTokensInFile(abs, tokens);
     },
   });
+  await restoreDotfiles(targetDir);
   s.stop("Template copied");
 
   // 2) Recreate the .claude harness symlinks deterministically.

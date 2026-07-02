@@ -14,6 +14,19 @@ const repoRoot = path.resolve(pkgRoot, "..", "..");
 const srcTemplate = path.join(repoRoot, "template");
 const destTemplate = path.join(pkgRoot, "template");
 
+// npm pack ALWAYS strips .gitignore/.npmrc from tarballs, so ship them underscore-prefixed;
+// the scaffolder renames them back (see restoreDotfiles in index.mjs).
+async function underscoreDotfiles(dir) {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const p = path.join(dir, entry.name);
+    if (entry.isDirectory()) await underscoreDotfiles(p);
+    else if (entry.name === ".gitignore" || entry.name === ".npmrc") {
+      await fs.rename(p, path.join(dir, "_" + entry.name.slice(1)));
+    }
+  }
+}
+
 async function main() {
   if (!(await pathExists(srcTemplate))) {
     console.error(`! No template found at ${srcTemplate}`);
@@ -24,6 +37,7 @@ async function main() {
     skipSymlinks: true,
     ignore: ["node_modules", ".next", ".turbo", "dist"],
   });
+  await underscoreDotfiles(destTemplate);
   console.log(`✓ template synced -> ${path.relative(pkgRoot, destTemplate)}`);
 }
 
