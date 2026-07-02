@@ -20,8 +20,12 @@ npx create-saas-harness@latest
   (auth, dashboard, settings, billing/tiers, one generic CRUD resource with RLS).
 - **Supabase** — Auth, Postgres with RLS, private Storage. Mock-first: the app runs 100% without
   third-party keys.
-- **Payments** — choose **Stripe** or **MercadoPago** at scaffold time; a single `PaymentProvider`
-  interface, the chosen adapter wired, the other pruned.
+- **Modular by scaffold** — the CLI assembles your stack deterministically and prunes the rest:
+  - **Payments**: **Stripe** or **MercadoPago** (single `PaymentProvider` interface).
+  - **Storage**: **Supabase Storage** or **S3-compatible** (Cloudflare R2 / AWS S3 / MinIO).
+  - **Email**: **Resend** or none for now (mock-first either way).
+  The chosen adapters are wired via `packages/integrations/src/<kind>/real.ts`; unchosen adapters
+  and their SDK dependencies never land in your repo.
 - **Tests** — Playwright (E2E) + Vitest (unit) with a critical-flow baseline.
 - **CI/CD** — GitHub Actions (verify, e2e, migrations) + Vercel + Supabase config.
 - **The harness** — `harness/` with an orchestrator workflow, specialized subagents
@@ -31,8 +35,17 @@ npx create-saas-harness@latest
 
 ## The experience
 
-1. **Scaffold.** `npx create-saas-harness@latest` asks the essentials (project name, slug, payments
-   provider, package manager), copies the template, installs deps, and makes the **first commit**.
+1. **Scaffold.** `npx create-saas-harness@latest` asks the essentials (project name, payments,
+   storage, email, package manager), copies the template, assembles the chosen modules, installs
+   deps, and makes the **first commit**. Every prompt is also a flag, so the whole thing runs
+   unattended:
+
+   ```bash
+   npx create-saas-harness@latest my-saas --payments stripe --storage supabase --email resend --pm pnpm -y
+   ```
+
+   Prefer clicking? Build your command visually at the **[configurator](./landing/)** (the Astro
+   landing page in this repo).
 2. **Define your product.** Open your agent and run `/project-setup`. It interviews you across
    7 rounds (idea, critical features, secondary features, business model, inspirations, dev
    profile), then spawns two agents:
@@ -56,8 +69,9 @@ a roadmap ready for agents to execute.
 
 ```
 create-saas-harness/
-├─ packages/cli/   # the npx scaffolder (prompts, copy, prune, git init + first commit)
-└─ template/       # the project that gets copied into your new folder
+├─ packages/cli/   # the npx scaffolder (prompts + flags, copy, prune, git init + first commit)
+├─ template/       # the project that gets copied into your new folder
+└─ landing/        # the Astro landing page / command configurator (deployed on Vercel)
 ```
 
 ## License

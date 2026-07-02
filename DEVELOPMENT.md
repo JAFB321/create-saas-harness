@@ -13,8 +13,12 @@
   with a built-in agent harness).
 
 The end-to-end experience it delivers:
-1. `npx create-saas-harness` → asks essentials (name, dir, **Stripe|MercadoPago**, package manager),
-   copies the template, prunes the unchosen payment adapter, installs, makes the **first commit**.
+1. `npx create-saas-harness` → asks essentials (name, dir, **payments Stripe|MercadoPago**,
+   **storage Supabase|S3-compatible**, **email Resend|none**, package manager), copies the template,
+   assembles the chosen modules (repoints `<kind>/real.ts`, prunes unchosen adapters + SDK deps +
+   env blocks), installs, makes the **first commit**. Every prompt is also a flag
+   (`--payments/--storage/--email/--pm/-y/--no-install/--no-git`) for unattended runs — the landing
+   page generates these commands.
 2. In the user's agent: `/project-setup` runs a 7-round product-discovery interview, then spawns
    `foundations-synthesizer` (writes `FOUNDATIONS/*` + `PRODUCT.md`), `design-architect` (commits a
    concrete design system via the `impeccable` skill — `.impeccable/design.json` + `DESIGN.md` + real
@@ -36,8 +40,11 @@ generalized to a neutral domain and English.
 | Interview driver | The **agent** via a `/project-setup` skill | More conversational than terminal prompts; the npx step only scaffolds. |
 | Agent target | **Claude Code only** | The harness is built on subagents/commands/skills/hooks; multi-agent would dilute it. |
 | Baseline app | **Batteries-included, mock-first** | Runs 100% without third-party keys; a working SaaS shell from commit 1. |
-| Payments | Choose Stripe **or** MercadoPago at scaffold; single `PaymentProvider` interface + **prune** | One repo, no flavor drift. Prune is safe because the factory imports `payment/real.ts`, a re-export the CLI repoints to the chosen adapter (the other adapter file + its SDK dep are removed). |
-| Storage/Email | S3-compatible (S3/R2/MinIO) + Resend, both mock-first | Mirrors photo.sh; runs on mocks by default. |
+| Modularity | Every integration is a scaffold-time choice behind a `<kind>/real.ts` re-export + **prune** | One repo, no flavor drift. Prune is safe because the factory/status only import `real.ts` (class + `REAL_*_PROVIDER` + `isReal*Configured`); the CLI repoints it and removes unchosen adapter files, SDK deps, and `.env.example` blocks (`## >>> kind:choice` markers). |
+| Payments | Stripe **or** MercadoPago | Single `PaymentProvider` interface. |
+| Storage | Supabase Storage (default — reuses project keys + a private-bucket migration) **or** S3-compatible (S3/R2/MinIO) | Both mock-first. The S3 choice prunes the bucket migration; the Supabase choice prunes the AWS SDK. |
+| Email | Resend **or** none-for-now | "None" pins `email/real.ts` to the mock and prunes the Resend adapter + dep. |
+| Non-interactive CLI | Every prompt has a flag (`--payments/--storage/--email/--pm/-y/…`) | The landing configurator emits a copy-paste one-liner; CI/agents can scaffold unattended. |
 | Language | English everywhere; UI is i18n-ready (keyed strings, English default) | Open-source/international. |
 | License | MIT | Max adoption. |
 | Example domain | Neutral SaaS shell: auth + dashboard + settings + billing/tiers + one CRUD resource (`items`) with RLS | Shows the full pattern without biasing the domain; MVP-1 of the generated roadmap specializes it. |
@@ -51,7 +58,8 @@ generalized to a neutral domain and English.
 ## Repo map
 
 ```
-packages/cli/         index.mjs (scaffolder) · lib/fs-utils.mjs · lib/sync-template.mjs (prepack bundles template/)
+packages/cli/         index.mjs (scaffolder: prompts + flags, module assembly) · lib/fs-utils.mjs · lib/sync-template.mjs (prepack bundles template/)
+landing/              Astro landing page — visual configurator that emits the npx command (deploy: Vercel, root dir = landing/)
 template/
   apps/web/           Next.js 15 app: (auth) login/signup, (app) dashboard/items/billing/settings, checkout, api/webhooks/payments, api/health, middleware
   packages/core/      pure domain: payment state-machine, plans/entitlements, zod schemas, money, email templates (unit-tested)
@@ -65,20 +73,26 @@ template/
 ```
 
 Tokens replaced by the CLI at scaffold time: `{{PROJECT_NAME}}`, `{{PROJECT_SLUG}}`,
-`{{PAYMENTS_PROVIDER}}`.
+`{{PAYMENTS_PROVIDER}}`, `{{STORAGE_PROVIDER}}`, `{{EMAIL_PROVIDER}}` (email renders as `mock`
+when "none" was chosen).
 
 ## Status (last session)
 
-**Verified green** against a freshly-scaffolded copy: `pnpm install`, `pnpm check-types` (5/5
-packages), `pnpm lint`, `pnpm test` (12 unit tests), `pnpm build` (13 routes). Both payment variants
-(Stripe and MercadoPago) type-check.
+**Modular scaffold shipped** (v1.1.0): storage (Supabase Storage | S3-compatible) and email
+(Resend | none) joined payments as scaffold-time choices, all behind the `<kind>/real.ts` pattern;
+the CLI grew non-interactive flags; the Astro landing/configurator landed in `landing/`; a template
+review pass fixed security findings (profiles RLS column privileges, OAuth callback open redirect,
+webhook error handling + replay gating, checkout auth, prod-gated mock webhook, MP webhook
+signature, escaped email HTML).
+
+**Verified green**: `pnpm verify` (types + lint + unit tests, 15/15 turbo tasks) on freshly
+scaffolded copies of BOTH extreme combos (stripe/supabase/resend/pnpm and mercadopago/s3/none/npm);
+`pnpm build` for the landing.
 
 **Not done yet:**
-- No git commit in this repo, and the CLI is **not published** to npm.
-- e2e (`template/e2e/critical-flow.spec.ts`) is written but **not run** — it needs a live Supabase
-  (local stack or a project). Only `landing.spec.ts` runs without Supabase.
-- The interactive CLI was validated by exercising its copy/prune/token/symlink mechanics directly;
-  the full prompt UX (`@clack/prompts`) wasn't run end-to-end.
+- The npm publish of 1.1.0 (`cd packages/cli && npm publish` — prepack bundles `template/`).
+- Vercel project for `landing/` (import repo, Root Directory = `landing/`).
+- e2e (`template/e2e/critical-flow.spec.ts`) still needs a live Supabase to run.
 
 ## How to verify (quickest path)
 

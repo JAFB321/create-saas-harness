@@ -8,3 +8,11 @@ dist/
 # This repo's own env, never the template's tracked files
 .env
 .env.local
+packages/cli/template/
+
+# Astro landing
+landing/.astro/
+
+# npm auth (local only — tokens must never be committed)
+packages/cli/.npmrc
+_.env
