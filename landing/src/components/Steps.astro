@@ -1,8 +1,10 @@
 ---
+import { PKG_NAME } from "../lib/site";
+
 const steps = [
   {
     n: "01",
-    cmd: "npx create-saas-harness",
+    cmd: `npx ${PKG_NAME}`,
     title: "Scaffold",
     body: "Pick your modules — payments, storage, email, package manager. The CLI copies the template, wires your choices, prunes the rest, installs and makes the first commit.",
     time: "~2 min",

@@ -209,6 +209,8 @@
 </section>
 
 <script>
+  import { PKG_NAME } from "../lib/site";
+
   type State = { name: string; payments: string; storage: string; email: string; pm: string };
   const state: State = { name: "my-saas", payments: "stripe", storage: "supabase", email: "resend", pm: "pnpm" };
 
@@ -219,13 +221,13 @@
   const cmdLine = document.getElementById("cmd-line")!;
   function commandString(): string {
     const s = slugify(state.name);
-    return `npx create-saas-harness@latest ${s} --payments ${state.payments} --storage ${state.storage} --email ${state.email} --pm ${state.pm} -y`;
+    return `npx ${PKG_NAME}@latest ${s} --payments ${state.payments} --storage ${state.storage} --email ${state.email} --pm ${state.pm} -y`;
   }
   function renderCommand() {
     const s = slugify(state.name);
     const flag = (f: string, v: string) => `<span class="t-flag">${f}</span> <span class="t-val">${v}</span>`;
     cmdLine.innerHTML =
-      `<span class="t-prompt">$</span> <span class="t-bin">npx</span> <span class="t-pkg">create-saas-harness@latest</span> ` +
+      `<span class="t-prompt">$</span> <span class="t-bin">npx</span> <span class="t-pkg">${PKG_NAME}@latest</span> ` +
       `<span class="t-name">${s}</span> ` +
       [flag("--payments", state.payments), flag("--storage", state.storage), flag("--email", state.email), flag("--pm", state.pm)].join(" ") +
       ` <span class="t-flag">-y</span>`;
