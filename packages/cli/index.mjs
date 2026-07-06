@@ -354,9 +354,13 @@ async function main() {
   await restoreDotfiles(targetDir);
   s.stop("Template copied");
 
-  // 2) Recreate the .claude harness symlinks deterministically.
+  // 2) Recreate the .claude harness links deterministically.
+  //    On Unix we symlink .claude/* -> ../harness/* (live, no duplication).
+  //    On Windows symlinks need elevation/Developer Mode and, for relative dir
+  //    targets, autodetect to a broken 'file' link — so we copy the real dir.
   s.start("Wiring the harness");
   const claudeDir = path.join(targetDir, ".claude");
+  const isWindows = process.platform === "win32";
   if (await pathExists(claudeDir)) {
     for (const [link, target] of [
       ["agents", "../harness/agents"],
@@ -364,12 +368,17 @@ async function main() {
       ["skills", "../harness/skills"],
     ]) {
       const linkPath = path.join(claudeDir, link);
+      const realDir = path.join(targetDir, "harness", link);
       await fs.rm(linkPath, { recursive: true, force: true }).catch(() => {});
+      if (isWindows) {
+        await copyDir(realDir, linkPath, { skipSymlinks: true });
+        continue;
+      }
       try {
         await fs.symlink(target, linkPath);
       } catch {
-        // Windows / no-symlink fallback: copy the real dir.
-        await copyDir(path.join(targetDir, "harness", link), linkPath, { skipSymlinks: true });
+        // No-symlink fallback (e.g. filesystem without symlink support): copy the real dir.
+        await copyDir(realDir, linkPath, { skipSymlinks: true });
       }
     }
   }
