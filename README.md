@@ -9,7 +9,7 @@ specific product on top of it** — guided by a structured interview that writes
 a fully populated, executable roadmap.
 
 ```bash
-npx create-saas-harness@latest
+npx create-saas-harness-new@latest
 ```
 
 ## What you get
@@ -35,13 +35,13 @@ npx create-saas-harness@latest
 
 ## The experience
 
-1. **Scaffold.** `npx create-saas-harness@latest` asks the essentials (project name, payments,
+1. **Scaffold.** `npx create-saas-harness-new@latest` asks the essentials (project name, payments,
    storage, email, package manager), copies the template, assembles the chosen modules, installs
    deps, and makes the **first commit**. Every prompt is also a flag, so the whole thing runs
    unattended:
 
    ```bash
-   npx create-saas-harness@latest my-saas --payments stripe --storage supabase --email resend --pm pnpm -y
+   npx create-saas-harness-new@latest my-saas --payments stripe --storage supabase --email resend --pm pnpm -y
    ```
 
    Prefer clicking? Build your command visually at the **[configurator](./landing/)** (the Astro
