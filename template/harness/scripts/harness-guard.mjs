@@ -42,14 +42,31 @@ if (tool === "Bash") {
     deny("Blocked: force push. If you really need it, do it manually.");
   }
 
-  // rm -rf on a dangerous bare target (/, ~, $HOME, *, .).
+  // rm -rf where a WHOLE argument is a bare dangerous target (/, ~, $HOME, *, ., ..).
+  // Scoped paths like `rm -rf ./node_modules` or `.next` stay allowed.
   const isRm = /\brm\b/.test(cmd);
   const hasR = /\s-\w*r/i.test(cmd);
   const hasF = /\s-\w*f/i.test(cmd);
-  if (isRm && hasR && hasF && /(\s|=)(\/|~|\$HOME|\*|\.)(\s|\/|$)/.test(cmd)) {
+  if (isRm && hasR && hasF && /(\s|=)(\/|~\/?|\$HOME\/?|\*|\.\.?)(\s|;|\||&|$)/.test(cmd)) {
     deny(
-      "Blocked: rm -rf on a dangerous path (/, ~, $HOME, *, .). Narrow the path or do it manually.",
+      "Blocked: rm -rf on a dangerous bare target (/, ~, $HOME, *, ., ..). Narrow the path or do it manually.",
     );
+  }
+
+  // Shell writes are the file-protection bypass route (Write/Edit are guarded below):
+  // redirects, tee, sed -i, mv/cp onto protected files.
+  const writesFiles = /(>>?|\btee\b|\bsed\b[^|;&]*\s-i|\bmv\b|\bcp\b|\btruncate\b|\bdd\b)/.test(
+    cmd,
+  );
+  if (writesFiles) {
+    if (/(^|[\s"'=/])\.env(\.\w[\w.]*)?\b/.test(cmd) && !/\.env\.example\b/.test(cmd)) {
+      deny("Blocked: shell write touching a .env file with secrets. Edit it manually.");
+    }
+    for (const m of cmd.matchAll(/(^|[\s"'=])([\w./-]*supabase\/migrations\/[\w.-]+\.sql)/g)) {
+      if (existsSync(m[2])) {
+        deny("Blocked: an existing migration is immutable. Create a new migration (next number).");
+      }
+    }
   }
 
   process.exit(0);

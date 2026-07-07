@@ -24,6 +24,24 @@ is the product's source of truth — clarity and faithfulness matter more than l
    long and vague.
 3. Use the domain's real language (the user's terms for entities/actions), in English.
 
+## Faithfulness (anti-hallucination — this spec drives everything downstream)
+
+- **Every substantive claim traces to the transcript.** If the user didn't say it and it doesn't
+  follow obviously from what they said, either leave it out or write it as `(assumption)` — never as
+  fact. This applies especially to: features, pricing numbers, user counts, market claims,
+  competitor behavior, compliance requirements, and deadlines.
+- **Don't upgrade vague answers into precise ones.** "Around $10" stays "~$10 _(assumption: exact
+  price pending)_", not "$9.99". Vague-but-load-bearing answers belong in `_decisions-log.md` as open
+  defaults so the roadmap-architect can turn them into `openQuestions`.
+- **Don't pad.** A thin interview produces thin foundations — that's correct. Filling gaps with
+  plausible-sounding invented detail is the failure mode, not the fix.
+- **Acceptance criteria must be testable**: an observable behavior with concrete inputs/outputs
+  ("creating an item beyond the free-tier limit shows the upgrade prompt"), never "works well" /
+  "is intuitive".
+- **Self-check before finishing:** re-read `_interview-raw.md` once more and confirm (a) no file
+  contradicts an interview answer, and (b) every `(assumption)` is genuinely absent from the
+  transcript. Fix what fails.
+
 ## Standard header (every file)
 
 ```yaml
@@ -39,21 +57,21 @@ source: project-setup interview
 
 ## Files to write (exactly these)
 
-| File | Contents (be specific) | Target |
-| --- | --- | --- |
-| `00-overview.md` | One-liner; the problem; who it's for; the "why now". | ½–1 pg |
-| `01-vision-scope.md` | Vision; 3–5 goals; **non-goals** (explicit); the MVP boundary (what's in the FIRST shippable cut vs later); success criteria (measurable if possible). | 1 pg |
-| `02-users-personas.md` | Primary + secondary personas; for each: who, their job-to-be-done, their pain today. | 1 pg |
-| `03-critical-features.md` | A table: feature · one-line description · **why critical** · acceptance criteria (testable). These are the must-haves. Keep it tight (3–7). | 1–2 pg |
-| `04-secondary-features.md` | A table: feature · description · rough priority (later / much later). The backlog. | 1 pg |
-| `05-business-model.md` | Monetization model; the wired payments provider (Stripe/MercadoPago) and why; tiers/plans + pricing; free-tier limits; fees/commissions; key money flows (who pays whom, when). | 1–2 pg |
-| `06-ux-style.md` | Visual language + tone; key screens/components; navigation shape; i18n stance (English default, keyed); accessibility baseline. | 1 pg |
-| `07-security-compliance.md` | Auth model (who logs in, roles); data sensitivity classes; RLS posture (what each role can read/write); privacy/compliance notes; top risks. | 1 pg |
-| `08-tech-architecture.md` | Confirmed stack (Next.js 15 + Supabase + the providers); the core entities/data model sketch (names + key fields, NOT full schema); integration list; known constraints. | 1–2 pg |
-| `09-inspirations.md` | Two tables (UI, Business): reference · link/name · **emulate** · **avoid**. | 1 pg |
-| `10-dev-team.md` | Stack familiarity; experience level; weak spots; availability; solo/team. **End with "Guidance for agents":** concrete instructions like "tasks touching RLS must include extra explanation and a worked example because the dev is weak there." | ½–1 pg |
-| `11-roadmap-outline.md` | The derived MVP sequence as a table: MVP # · theme · the critical features it lands · rough size. MVP-1 MUST be "specialize the neutral shell into the real domain" (rename the example resource, set up the real core entities, wire auth/RLS for them). This is the bridge the roadmap-architect expands. | 1 pg |
-| `_decisions-log.md` | Append-only log: each notable decision as `- <decision> — rationale; (assumption) if you inferred it`. Include every default you picked for skipped questions. | append |
+| File                        | Contents (be specific)                                                                                                                                                                                                                                                                                      | Target |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| `00-overview.md`            | One-liner; the problem; who it's for; the "why now".                                                                                                                                                                                                                                                        | ½–1 pg |
+| `01-vision-scope.md`        | Vision; 3–5 goals; **non-goals** (explicit); the MVP boundary (what's in the FIRST shippable cut vs later); success criteria (measurable if possible).                                                                                                                                                      | 1 pg   |
+| `02-users-personas.md`      | Primary + secondary personas; for each: who, their job-to-be-done, their pain today.                                                                                                                                                                                                                        | 1 pg   |
+| `03-critical-features.md`   | A table: feature · one-line description · **why critical** · acceptance criteria (testable). These are the must-haves. Keep it tight (3–7).                                                                                                                                                                 | 1–2 pg |
+| `04-secondary-features.md`  | A table: feature · description · rough priority (later / much later). The backlog.                                                                                                                                                                                                                          | 1 pg   |
+| `05-business-model.md`      | Monetization model; the wired payments provider (Stripe/MercadoPago) and why; tiers/plans + pricing; free-tier limits; fees/commissions; key money flows (who pays whom, when).                                                                                                                             | 1–2 pg |
+| `06-ux-style.md`            | Visual language + tone; key screens/components; navigation shape; i18n stance (English default, keyed); accessibility baseline.                                                                                                                                                                             | 1 pg   |
+| `07-security-compliance.md` | Auth model (who logs in, roles); data sensitivity classes; RLS posture (what each role can read/write); privacy/compliance notes; top risks.                                                                                                                                                                | 1 pg   |
+| `08-tech-architecture.md`   | Confirmed stack (Next.js 15 + Supabase + the providers); the core entities/data model sketch (names + key fields, NOT full schema); integration list; known constraints.                                                                                                                                    | 1–2 pg |
+| `09-inspirations.md`        | Two tables (UI, Business): reference · link/name · **emulate** · **avoid**.                                                                                                                                                                                                                                 | 1 pg   |
+| `10-dev-team.md`            | Stack familiarity; experience level; weak spots; availability; solo/team. **End with "Guidance for agents":** concrete instructions like "tasks touching RLS must include extra explanation and a worked example because the dev is weak there."                                                            | ½–1 pg |
+| `11-roadmap-outline.md`     | The derived MVP sequence as a table: MVP # · theme · the critical features it lands · rough size. MVP-1 MUST be "specialize the neutral shell into the real domain" (rename the example resource, set up the real core entities, wire auth/RLS for them). This is the bridge the roadmap-architect expands. | 1 pg   |
+| `_decisions-log.md`         | Append-only log: each notable decision as `- <decision> — rationale; (assumption) if you inferred it`. Include every default you picked for skipped questions.                                                                                                                                              | append |
 
 Leave `_interview-raw.md` as-is (don't rewrite it).
 
@@ -67,7 +85,7 @@ The `impeccable` design skill (used next by the `design-architect`) reads a root
 
 ## Register
 
-product   <!-- "product" for app/dashboard/tool UI (design SERVES the product); "brand" only if this is landing/marketing-first (design IS the product). Pick by what the FIRST shippable cut mostly is. -->
+product <!-- "product" for app/dashboard/tool UI (design SERVES the product); "brand" only if this is landing/marketing-first (design IS the product). Pick by what the FIRST shippable cut mostly is. -->
 
 ## Users
 

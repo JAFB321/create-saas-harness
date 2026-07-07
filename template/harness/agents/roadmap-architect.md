@@ -29,8 +29,19 @@ Write to `harness/docs/roadmap/`:
   `title`,`estimate`,`detail?`,`goals`[{`id`,`title`,`detail?`,`tasks`[{`id`,`desc`,`area`,
   `designRef?`,`status`,`verify`}]}]}]).
 - `harness/docs/roadmap/plans/<mvp-id>-<slug>.md` — a detail plan for any sprint/goal that is complex
-  enough to need one (data model, sequence, gotchas, decisions). Reference it from the JSON via the
-  `detail` field (e.g. `"detail": "plans/mvp-1-auth.md"`).
+  enough to need one. Reference it from the JSON via the `detail` field (e.g.
+  `"detail": "plans/mvp-1-auth.md"`). Every plan follows this structure (skip a section only when
+  genuinely empty):
+  1. **Context** — why this exists, in 2–3 lines, tied to the feature's acceptance criteria.
+  2. **Data model** — tables/columns/enums touched, RLS implications. Names must match
+     `database.types.ts` or be created by a task in this plan.
+  3. **Flow** — the happy path as a numbered sequence (who calls what, where state changes).
+  4. **Edge cases & failure modes** — the concrete ones the implementation must survive
+     (retries, race, empty/limit states, unauthorized access).
+  5. **Out of scope** — what this plan deliberately does NOT do (protects against scope drift).
+  6. **Verification map** — which task's `verify` covers which behavior above.
+     A plan is a contract, not an essay: bullets and tables, no motivational prose, no restating
+     FOUNDATIONS.
 - `harness/docs/roadmap/plans/mvp-1-design.md` — **always** a design plan for MVP-1: screen by screen
   (layout, which `.impeccable/design.json` components, states empty/loading/error, copy/tone),
   anchored to `DESIGN.md`. UI tasks point their `designRef` at sections of this file.
@@ -47,6 +58,15 @@ Write to `harness/docs/roadmap/`:
   — never leave the placeholder palette.)
 - Tasks are **atomic and executable**: one clear outcome, the probable files/areas, and a concrete
   `verify`. A dev-agent should be able to start without asking questions.
+- **Quality bar for `desc`** (the implementer executes from this text alone): 1–3 sentences stating
+  (a) the concrete outcome, (b) the probable files/areas to touch, and (c) any constraint or edge
+  case that isn't obvious ("idempotent — provider retries", "empty state included"). Ban vague verbs
+  as the whole spec ("improve", "handle", "polish", "support"). Bad: "Improve item management."
+  Good: "Add an edit flow to `/items`: inline title edit via a server action in
+  `items/_actions.ts`, zod-validated, owner-checked; optimistic UI reverts on error."
+- **Reference only what exists.** Any file, component, or token a `desc`/plan mentions must exist in
+  the scaffold (Glob to confirm) or be created by a prior task in the same roadmap. Don't invent
+  helpers, routes, or tables the plan never creates — that sends the implementer chasing ghosts.
 - **UI tasks carry a `designRef` and concrete visual acceptance.** Any task with a visible surface
   (`area: "app"` rendering a screen/component) must set `designRef` to the relevant section of
   `plans/mvp-1-design.md` / the `.impeccable/design.json` component, and its `verify.desc` must state
@@ -81,8 +101,10 @@ Write to `harness/docs/roadmap/`:
 3. For each MVP, write its JSON with sprints → goals → tasks, plus its `openQuestions`. MVP-1 leads
    with the **S0 — Design foundation** sprint. Write `plans/*.md` for the complex sprints/goals, and
    **always** `plans/mvp-1-design.md`. Set `designRef` on every UI task.
-4. Validate every JSON parses and matches the schema. Use `node -e` or a quick `Bash` check to
-   confirm valid JSON for each file you wrote.
+4. Validate every file you wrote: run `node harness/scripts/validate-roadmap.mjs`. It checks the
+   schema deterministically (ids, statuses, `verify` shape, `openQuestions` shape, referenced
+   `detail`/`designRef` plan files). Fix every error and re-run until clean; treat warnings as
+   review notes.
 
 ## When done
 

@@ -39,8 +39,7 @@ for (const s of j.sprints || [])
       if (t.status === "done") done++;
       if (t.status === "doing") doing++;
     }
-j.status = done === total ? "done" : done > 0 || doing > 0 ? "in_progress" : "todo";
+j.status = total > 0 && done === total ? "done" : done > 0 || doing > 0 ? "in_progress" : "todo";
 writeFileSync(file, JSON.stringify(j, null, 2) + "\n");
-console.log(
-  `updated ${touched} | progress ${done}/${total} (${Math.round((done / total) * 100)}%) | mvp.status=${j.status}`,
-);
+const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+console.log(`updated ${touched} | progress ${done}/${total} (${pct}%) | mvp.status=${j.status}`);

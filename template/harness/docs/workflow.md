@@ -61,7 +61,8 @@ operator's memory.
    are already answered, skip straight ahead — no re-asking.
 5. `bash harness/scripts/dev-up.sh` (`pnpm up`) — bring the environment up deterministically. No
    manual steps.
-6. Baseline smoke: `pnpm e2e` (or the critical subset) to confirm we start from green.
+6. Baseline smoke: `pnpm e2e e2e/critical-flow.spec.ts` (the critical subset — the full suite runs at
+   `/verify`/wrap) to confirm we start from green.
 
 > Why front-loaded: the daily loop is "open the session, answer everything it needs, then leave it
 > working." The gate is the single interrogation point; everything after it is autonomous.
@@ -124,13 +125,13 @@ dashboard.
 
 ## Verification: what counts as "green"
 
-| Type        | Command            | Covers                                                      |
-| ----------- | ------------------ | ---------------------------------------------------------- |
-| Aggregate   | `pnpm verify`      | Shortcut: types + lint + test for the whole project        |
-| Unit        | `pnpm test`        | Critical business logic                                    |
-| Smoke E2E   | `pnpm e2e`         | Critical UI/API flows                                      |
-| Types       | `pnpm check-types` | Project type compilation                                   |
-| Lint        | `pnpm lint`        | Style/quality rules                                        |
+| Type      | Command            | Covers                                              |
+| --------- | ------------------ | --------------------------------------------------- |
+| Aggregate | `pnpm verify`      | Shortcut: types + lint + test for the whole project |
+| Unit      | `pnpm test`        | Critical business logic                             |
+| Smoke E2E | `pnpm e2e`         | Critical UI/API flows                               |
+| Types     | `pnpm check-types` | Project type compilation                            |
+| Lint      | `pnpm lint`        | Style/quality rules                                 |
 
 The `verifier` runs the task's exact `spec` (via `verify.spec`); `pnpm verify` is the aggregate
 check for session wrap.
@@ -156,12 +157,12 @@ written into the roadmap JSON (the JSON stays declarative: scope/tasks).
 
 **Create:** `pnpm worktree:new <n>` (`harness/scripts/worktree-new.sh`). It derives and leaves ready:
 
-| Resource | Value                  | Note                                        |
-| -------- | ---------------------- | ------------------------------------------- |
-| worktree | `../<repo>-mvp-<n>`    | sibling of the main repo                    |
-| branch   | `feat/mvp-<n>`         | from `develop` (or the `[base]` you pass)   |
-| port     | `3000 + <n>`           | app + `E2E_BASE_URL` (mvp-7 -> `:3007`)     |
-| sandbox  | `mvp_<n>`              | isolated migration DB                       |
+| Resource | Value               | Note                                      |
+| -------- | ------------------- | ----------------------------------------- |
+| worktree | `../<repo>-mvp-<n>` | sibling of the main repo                  |
+| branch   | `feat/mvp-<n>`      | from `develop` (or the `[base]` you pass) |
+| port     | `3000 + <n>`        | app + `E2E_BASE_URL` (mvp-7 -> `:3007`)   |
+| sandbox  | `mvp_<n>`           | isolated migration DB                     |
 
 It symlinks `.env.local` and writes `.harness-env` with `MVP_N/PORT/E2E_BASE_URL/SANDBOX_DB`.
 **In each worktree terminal:** run `source .harness-env` before `pnpm dev`/`pnpm e2e:local`.
@@ -181,6 +182,9 @@ It symlinks `.env.local` and writes `.harness-env` with `MVP_N/PORT/E2E_BASE_URL
 ## Roadmap JSON schema (`roadmap/mvp-*.json`)
 
 One file per MVP (`mvp-1`, `mvp-2`, …). The dashboard discovers them by scanning `mvp-N.json`.
+`pnpm roadmap:validate` (`harness/scripts/validate-roadmap.mjs`) checks every file against this
+schema deterministically — run it after generating or hand-editing a roadmap; task statuses are set
+via `harness/scripts/set-task-status.mjs`, not hand edits.
 
 ```jsonc
 {
@@ -200,8 +204,8 @@ One file per MVP (`mvp-1`, `mvp-2`, …). The dashboard discovers them by scanni
       "severity": "blocking | default-ok", // blocking = must ask; default-ok = proceed on default
       "area": "app | db | infra | core | design | business",
       "answered": false,
-      "answer": null
-    }
+      "answer": null,
+    },
   ],
   "sprints": [
     {
@@ -224,14 +228,14 @@ One file per MVP (`mvp-1`, `mvp-2`, …). The dashboard discovers them by scanni
               "verify": {
                 "type": "unit | e2e | manual",
                 "spec": "path/to/test",
-                "desc": "what it verifies"
-              }
-            }
-          ]
-        }
-      ]
-    }
-  ]
+                "desc": "what it verifies",
+              },
+            },
+          ],
+        },
+      ],
+    },
+  ],
 }
 ```
 

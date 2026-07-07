@@ -1,30 +1,30 @@
 {
   "mvp": 1,
-  "objective": "TEMPLATE — describe the MVP objective in one sentence. Copy this file to mvp-1.json (gitignored) and edit it; this mvp-example.json is the reference template and the only versioned roadmap file. `/project-setup` generates real mvp-*.json files for you.",
+  "objective": "TEMPLATE — copy to mvp-1.json (gitignored) and edit; `/project-setup` generates real mvp-*.json files for you. The tasks below are realistic examples of the expected granularity: outcome + probable files + non-obvious constraint, never a vague verb alone.",
   "deadline": "",
   "availability": "e.g. 4-6h/week",
   "status": "todo",
   "scope": {
-    "included": ["feature A included in this MVP", "feature B"],
-    "excluded": ["feature deferred to a later MVP"]
+    "included": ["item tagging (create, filter)", "tag usage shown on dashboard"],
+    "excluded": ["tag colors/renaming (later MVP)", "bulk tagging"]
   },
   "openQuestions": [
     {
       "id": "q1",
-      "question": "Example blocking decision the human must make before/while this MVP is built.",
-      "why": "What is ambiguous or breaks without an answer.",
-      "options": ["option A", "option B"],
-      "default": "option A",
+      "question": "Free-tier limit: how many tags may a free user create?",
+      "why": "The limit gates the upgrade prompt; tasks s1-g1-t1/t2 enforce and test it.",
+      "options": ["3 tags", "10 tags", "unlimited"],
+      "default": "10 tags",
       "severity": "blocking",
-      "area": "infra",
+      "area": "business",
       "answered": false,
       "answer": null
     },
     {
       "id": "q2",
-      "question": "Example fine-grained decision the agent can default but should surface.",
-      "why": "Why it matters to get right eventually.",
-      "default": "the sensible default",
+      "question": "Empty dashboard: show a sample-data illustration or a plain 'create your first item' card?",
+      "why": "Screen-level choice; either works, but it sets the tone for all empty states.",
+      "default": "plain card, per DESIGN.md quiet-surface rule",
       "severity": "default-ok",
       "area": "design",
       "answered": false,
@@ -34,45 +34,45 @@
   "sprints": [
     {
       "id": "s1",
-      "title": "Sprint title",
+      "title": "Item tagging",
       "estimate": "~10h",
-      "detail": "plans/s1.md",
+      "detail": "plans/example-tagging.md",
       "goals": [
         {
           "id": "s1-g1",
-          "title": "Concrete sprint goal",
+          "title": "Users can tag items and filter by tag",
           "tasks": [
             {
               "id": "s1-g1-t1",
-              "desc": "Task with unit verification.",
-              "area": "app",
+              "desc": "Add `tags` + `item_tags` tables in a new migration with owner-scoped RLS (mirror the `items` policies), regenerate database.types.ts, and add a zod schema `createTagSchema` in packages/core (name 1-30 chars, trimmed, per-user unique).",
+              "area": "db",
               "status": "todo",
               "verify": {
                 "type": "unit",
-                "spec": "packages/core/src/__tests__/example.test.ts",
-                "desc": "What behavior the unit test validates."
+                "spec": "packages/core/src/schemas/tag.test.ts",
+                "desc": "createTagSchema accepts valid names, rejects empty/31-char/whitespace-only, and normalizes case for the uniqueness key."
               }
             },
             {
               "id": "s1-g1-t2",
-              "desc": "UI task with end-to-end verification (note the designRef on UI tasks).",
+              "desc": "Tag picker on /items: server actions in items/_actions.ts (createTag, assignTag — zod-validated, owner-checked), free-tier tag limit enforced with the upgrade prompt on exceed. Follows the chip component in the design plan.",
               "area": "app",
-              "designRef": "plans/s1-design.md#some-screen",
+              "designRef": "plans/example-tagging.md#tag-picker",
               "status": "todo",
               "verify": {
                 "type": "e2e",
-                "spec": "e2e/example.spec.ts",
-                "desc": "What UI/API flow the e2e validates, incl. concrete visual acceptance (empty/loading/error states, responsive, reduced-motion)."
+                "spec": "e2e/tags.spec.ts",
+                "desc": "User creates a tag, assigns it, filters by it; exceeding the free limit shows the upgrade prompt; empty state renders when no tags exist; picker is keyboard-navigable."
               }
             },
             {
               "id": "s1-g1-t3",
-              "desc": "Task with no automated test (requires human confirmation).",
+              "desc": "Confirm the tag filter feels responsive on a seeded account (~50 items) — no visible lag when toggling tags on mid-range hardware.",
               "area": "app",
               "status": "todo",
               "verify": {
                 "type": "manual",
-                "desc": "Human-readable acceptance criterion the human confirms by hand."
+                "desc": "Human toggles tag filters on the seeded account and confirms the list updates without perceptible delay or layout shift."
               }
             }
           ]

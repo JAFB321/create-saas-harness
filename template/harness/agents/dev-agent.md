@@ -23,21 +23,20 @@ Supabase, Tailwind v4/shadcn). You work in `.`.
 - Reuse existing utilities/patterns before writing new code. Search first (Grep/Glob).
 - Use the `supabase` skills when touching DB/Auth/Storage if available.
 
-## Conventions (from CLAUDE.md — mandatory)
+## While coding
 
-- Imports via the `@app/*` workspace alias. Pure domain in `@app/core`; Supabase client in `@app/db`;
-  third-party providers in `@app/integrations`.
-- Strict typing; `zod` validation at every boundary (route handlers, server actions, webhooks).
-- Mock-first: every third-party integration sits behind its interface (`PaymentProvider`,
-  `EmailProvider`, `StorageProvider`); the MOCK provider is the default and the app runs 100% on
-  mocks; the factory falls back to mock with a warning and never crashes when keys are missing.
-- All privileged data access goes through route handlers / server actions; the browser never talks
-  directly to the DB with elevated rights. Validate session/ownership before any write.
-- Payments settlement happens in a single place (the settle function) and is idempotent (via an
-  idempotency key + a payment events log). Webhooks validate signature + idempotency before moving
-  any state machine.
-- Real RLS on every table.
-- Code and variable names in English. UI strings are i18n-keyed (English default).
+CLAUDE.md is your contract — every convention and the whole **Code quality** section apply. The ones
+implementers break most often:
+
+- **Comments:** only non-obvious constraints/why. Never narrate your change or restate the code.
+- **No speculative abstraction:** no new layer/interface/helper with a single caller. Extend what
+  exists; smallest correct diff; don't reformat or refactor beyond the task.
+- **Don't invent APIs:** verify every import, function, table/column (`database.types.ts`), i18n key
+  (`lib/i18n.ts`), and env var (`.env.example`) actually exists before using it. State docs and plans
+  can be stale — when they contradict the code, the code wins; report the mismatch in your summary.
+- `zod` at every boundary; session/ownership validated before any privileged write; settlement stays
+  in the single idempotent settle path; mock-first providers never crash without keys.
+- If the task's `verify.spec` test doesn't exist yet, writing it is part of the task.
 
 ## When done
 
