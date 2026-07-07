@@ -45,18 +45,11 @@ const CHOICES = {
       { value: "none", label: "None for now", hint: "mock only — add a provider later" },
     ],
   },
-  pm: {
-    flag: "pm",
-    message: "Package manager?",
-    initial: "pnpm",
-    options: [
-      { value: "pnpm", label: "pnpm", hint: "recommended" },
-      { value: "npm", label: "npm" },
-      { value: "yarn", label: "yarn" },
-      { value: "bun", label: "bun" },
-    ],
-  },
 };
+
+// pnpm is required, not a choice: the workspace uses the `workspace:*` protocol (npm can't install
+// it) and every script (turbo, dev-up.sh, e2e, CI) invokes pnpm.
+const PM = "pnpm";
 
 // What each choice re-exports from `<kind>/real.ts` in @app/integrations.
 const REAL_ADAPTERS = {
@@ -177,12 +170,14 @@ async function resolveTemplateDir() {
 }
 
 function slugify(name) {
-  return String(name)
+  const slug = String(name)
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9-]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .replace(/-{2,}/g, "-");
+  // Names like "!!" slugify to "" — an invalid package name / directory.
+  return slug || "my-saas";
 }
 
 function bail(msg) {
@@ -201,17 +196,18 @@ ${pc.bold("Options")}
   --payments <provider>    stripe | mercadopago            (default: stripe)
   --storage <provider>     supabase | s3                   (default: supabase)
   --email <provider>       resend | none                   (default: resend)
-  --pm <manager>           pnpm | npm | yarn | bun         (default: pnpm)
   --install / --no-install Install dependencies            (default: install)
   --git / --no-git         git init + first commit         (default: git)
   -y, --yes                Accept defaults for anything not passed (no prompts)
   -h, --help               Show this help
   --version                Show the CLI version
 
+The workspace requires ${pc.bold("pnpm")} (enable it with: corepack enable pnpm).
+
 ${pc.bold("Examples")}
   npx create-saas-harness
   npx create-saas-harness my-saas -y
-  npx create-saas-harness my-saas --payments mercadopago --storage s3 --email none --pm pnpm -y
+  npx create-saas-harness my-saas --payments mercadopago --storage s3 --email none -y
 `;
 
 function parseCliArgs() {
@@ -224,7 +220,7 @@ function parseCliArgs() {
         payments: { type: "string" },
         storage: { type: "string" },
         email: { type: "string" },
-        pm: { type: "string" },
+        pm: { type: "string" }, // deprecated: accepted but ignored (pnpm is required)
         install: { type: "boolean" },
         "no-install": { type: "boolean" },
         git: { type: "boolean" },
@@ -240,13 +236,18 @@ function parseCliArgs() {
     process.exit(1);
   }
   const { values, positionals } = parsed;
-  for (const key of ["payments", "storage", "email", "pm"]) {
+  for (const key of ["payments", "storage", "email"]) {
     const val = values[key];
     if (val !== undefined && !CHOICES[key].options.some((o) => o.value === val)) {
       const valid = CHOICES[key].options.map((o) => o.value).join(" | ");
       console.error(pc.red(`\nInvalid --${key} "${val}". Valid values: ${valid}`));
       process.exit(1);
     }
+  }
+  if (values.pm !== undefined && values.pm !== PM) {
+    console.error(
+      pc.yellow(`\n--pm ${values.pm} is no longer supported (the workspace requires pnpm). Using pnpm.`),
+    );
   }
   return { values, dir: positionals[0] };
 }
@@ -304,7 +305,7 @@ async function main() {
   );
 
   const config = {};
-  for (const key of ["payments", "storage", "email", "pm"]) {
+  for (const key of ["payments", "storage", "email"]) {
     const spec = CHOICES[key];
     config[key] = await promptOrDefault(
       flags[key],
@@ -313,7 +314,6 @@ async function main() {
       spec.initial,
     );
   }
-  const pm = config.pm;
 
   const doInstall = await promptOrDefault(
     flags["no-install"] ? false : flags.install ? true : undefined,
@@ -431,10 +431,24 @@ async function main() {
 
   // 5) Install dependencies (optional).
   if (doInstall) {
-    s.start(`Installing dependencies with ${pm}`);
-    const res = spawnSync(pm, ["install"], { cwd: targetDir, stdio: "ignore", shell: process.platform === "win32" });
-    if (res.status === 0) s.stop("Dependencies installed");
-    else s.stop(pc.yellow(`Skipped install (run \`${pm} install\` manually).`));
+    s.start(`Installing dependencies with ${PM}`);
+    const res = spawnSync(PM, ["install"], {
+      cwd: targetDir,
+      stdio: ["ignore", "ignore", "pipe"],
+      encoding: "utf8",
+      shell: process.platform === "win32",
+    });
+    if (res.status === 0) {
+      s.stop("Dependencies installed");
+    } else {
+      s.stop(pc.yellow(`Install failed — run \`${PM} install\` manually.`));
+      const stderr = (res.stderr ?? String(res.error?.message ?? "")).trim();
+      if (res.error?.code === "ENOENT") {
+        console.error(pc.yellow("  pnpm not found. Enable it with: corepack enable pnpm"));
+      } else if (stderr) {
+        console.error(pc.dim(stderr.split("\n").slice(-6).join("\n")));
+      }
+    }
   }
 
   // 6) git init + FIRST COMMIT.
@@ -459,16 +473,18 @@ async function main() {
 
   // 7) Next steps.
   const cd = path.relative(process.cwd(), targetDir) || ".";
+  const steps = [
+    `cd ${cd}`,
+    doInstall ? null : `${PM} install`,
+    `cp .env.example .env.local  ${pc.dim("→ add your Supabase URL + keys")}`,
+    `   ${pc.dim("(hosted project, or local: supabase start — needs the Supabase CLI + Docker)")}`,
+    `Open your agent (Claude Code) and run ${pc.cyan("/project-setup")}`,
+    `   ${pc.dim("→ it interviews you, then writes FOUNDATIONS/* and your roadmap.")}`,
+    `Then read ${pc.cyan("INSTRUCTIONS.md")} for the daily loop.`,
+  ].filter(Boolean);
+  let n = 0;
   p.note(
-    [
-      `${pc.bold("1.")} cd ${cd}`,
-      doInstall ? "" : `${pc.bold("2.")} ${pm} install`,
-      `${pc.bold(doInstall ? "2." : "3.")} Open your agent (Claude Code) and run ${pc.cyan("/project-setup")}`,
-      `   → it interviews you, then writes FOUNDATIONS/* and your roadmap.`,
-      `${pc.bold(doInstall ? "3." : "4.")} Then read ${pc.cyan("INSTRUCTIONS.md")} for the daily loop.`,
-    ]
-      .filter(Boolean)
-      .join("\n"),
+    steps.map((line) => (line.startsWith("   ") ? line : `${pc.bold(`${++n}.`)} ${line}`)).join("\n"),
     "Next steps",
   );
   p.outro(pc.green("Ready. Build something great."));

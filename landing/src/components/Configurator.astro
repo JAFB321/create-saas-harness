@@ -142,17 +142,6 @@
           </div>
         </fieldset>
 
-        <fieldset class="group" data-key="pm">
-          <legend>
-            Package manager <span class="group-flag">--pm</span>
-          </legend>
-          <div class="seg" role="radiogroup">
-            <label class="seg-item"><input type="radio" name="pm" value="pnpm" checked /><span>pnpm</span></label>
-            <label class="seg-item"><input type="radio" name="pm" value="npm" /><span>npm</span></label>
-            <label class="seg-item"><input type="radio" name="pm" value="yarn" /><span>yarn</span></label>
-            <label class="seg-item"><input type="radio" name="pm" value="bun" /><span>bun</span></label>
-          </div>
-        </fieldset>
       </div>
 
       <!-- ────────────────────────────── preview ────────────────────────────── -->
@@ -211,8 +200,8 @@
 <script>
   import { PKG_NAME } from "../lib/site";
 
-  type State = { name: string; payments: string; storage: string; email: string; pm: string };
-  const state: State = { name: "my-saas", payments: "stripe", storage: "supabase", email: "resend", pm: "pnpm" };
+  type State = { name: string; payments: string; storage: string; email: string };
+  const state: State = { name: "my-saas", payments: "stripe", storage: "supabase", email: "resend" };
 
   const slugify = (v: string) =>
     v.toLowerCase().trim().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").replace(/-{2,}/g, "-") || "my-saas";
@@ -221,7 +210,7 @@
   const cmdLine = document.getElementById("cmd-line")!;
   function commandString(): string {
     const s = slugify(state.name);
-    return `npx ${PKG_NAME}@latest ${s} --payments ${state.payments} --storage ${state.storage} --email ${state.email} --pm ${state.pm} -y`;
+    return `npx ${PKG_NAME}@latest ${s} --payments ${state.payments} --storage ${state.storage} --email ${state.email} -y`;
   }
   function renderCommand() {
     const s = slugify(state.name);
@@ -229,7 +218,7 @@
     cmdLine.innerHTML =
       `<span class="t-prompt">$</span> <span class="t-bin">npx</span> <span class="t-pkg">${PKG_NAME}@latest</span> ` +
       `<span class="t-name">${s}</span> ` +
-      [flag("--payments", state.payments), flag("--storage", state.storage), flag("--email", state.email), flag("--pm", state.pm)].join(" ") +
+      [flag("--payments", state.payments), flag("--storage", state.storage), flag("--email", state.email)].join(" ") +
       ` <span class="t-flag">-y</span>`;
   }
 
@@ -242,7 +231,7 @@
   const chipsEl = document.getElementById("stack-chips")!;
   function renderChips() {
     const fixed = ["Next.js 15", "Supabase", "Turborepo", "Agent harness"];
-    const picked = [LABELS.payments![state.payments]!, LABELS.storage![state.storage]!, LABELS.email![state.email]!, state.pm];
+    const picked = [LABELS.payments![state.payments]!, LABELS.storage![state.storage]!, LABELS.email![state.email]!, "pnpm"];
     chipsEl.innerHTML =
       picked.map((c) => `<span class="chip chip-mod">${c}</span>`).join("") +
       fixed.map((c) => `<span class="chip">${c}</span>`).join("");
