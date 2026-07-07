@@ -27,7 +27,8 @@ npx create-saas-harness-new@latest
   The chosen adapters are wired via `packages/integrations/src/<kind>/real.ts`; unchosen adapters
   and their SDK dependencies never land in your repo.
 - **Tests** — Playwright (E2E) + Vitest (unit) with a critical-flow baseline.
-- **CI/CD** — GitHub Actions (verify, e2e, migrations) + Vercel + Supabase config.
+- **CI/CD** — GitHub Actions (verify, migrations) + Vercel + Supabase config. E2E runs locally
+  (`pnpm e2e`) so CI never has to spin a Supabase stack.
 - **The harness** — `harness/` with an orchestrator workflow, specialized subagents
   (`dev-agent`, `dev-agent-pro`, `verifier`, `reviewer`, `doc-keeper`), slash commands
   (`/session-start`, `/session-wrap`, `/verify`, `/project-setup`), deterministic guards (hooks),

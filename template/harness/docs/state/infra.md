@@ -34,6 +34,7 @@ Validated in `@app/db/env.ts`. Required for the app to run: `NEXT_PUBLIC_SUPABAS
 ## Deploy
 
 - `supabase/` — config + migrations; `pnpm db:types` regenerates types.
-- `.github/workflows/`: `verify` (types+lint+test on push/PR), `e2e` (spins a local Supabase),
-  `migrations` (pushes to the linked remote on merge to main; needs Supabase secrets).
+- `.github/workflows/`: `verify` (types+lint+test on push/PR), `migrations` (pushes to the linked
+  remote on merge to main; needs Supabase secrets). E2E runs locally (`pnpm e2e`) — CI doesn't spin
+  a Supabase stack.
 - Hosting target is Vercel (Next.js). Set the env vars in the host; never commit `.env.local`.
