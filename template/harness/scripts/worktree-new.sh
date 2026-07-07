@@ -4,7 +4,7 @@
 # ----------------------------------------------------------------------------
 # Convention DERIVED from the MVP number (nothing to assign by hand):
 #   · worktree : ../<repo>-mvp-<n>
-#   · branch   : feat/mvp-<n>           (from <base>, default: develop)
+#   · branch   : feat/mvp-<n>           (from <base>, default: the current branch)
 #   · port     : 3000 + <n>             (mvp-7 -> :3007)  app + e2e baseURL
 #   · sandbox  : mvp_<n>                (Lane 1, isolated migration DB)
 #
@@ -25,7 +25,10 @@ REPO_NAME="$(basename "$MAIN_ROOT")"
 ENV_REAL="${MAIN_ROOT}/.env.local"
 
 N="${1:-}"
-BASE="${2:-develop}"
+# Default base: develop if it exists (team convention), else the current branch —
+# a fresh scaffold only has main/master.
+DEFAULT_BASE="$(git show-ref --verify --quiet refs/heads/develop && echo develop || git branch --show-current)"
+BASE="${2:-$DEFAULT_BASE}"
 
 if ! [[ "$N" =~ ^[0-9]+$ ]]; then
   echo "Usage: bash harness/scripts/worktree-new.sh <n> [base]" >&2

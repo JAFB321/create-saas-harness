@@ -32,13 +32,13 @@ export async function startCheckoutAction(formData: FormData): Promise<void> {
     .single();
   if (error || !order) throw new Error(error?.message ?? "Could not create order");
 
+  // The webhook reads the plan from the ORDER row's metadata (set above), not from the provider.
   const checkout = await getPaymentProvider().createCheckout({
     orderId: order.id,
     amountCents: plan.priceCents,
     currency: "usd",
     description: `${plan.name} plan`,
     customerEmail: user.email,
-    metadata: { plan: plan.id },
   });
 
   redirect(checkout.redirectUrl ?? `/checkout/${order.id}`);

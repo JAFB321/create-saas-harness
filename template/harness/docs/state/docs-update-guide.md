@@ -8,11 +8,11 @@ Instructions for any model or agent working on this project. Read it before modi
 
 Docs split into three categories:
 
-| Category                            | Files                                       | Rule                                                                                                                              |
-| ----------------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Project state (machine-readable)**| `roadmap/mvp-*.json` (active: `mvp-1.json`) | Source of truth for progress. The agent updates `status` per task. The % auto-computes in the dashboard — **never edited by hand**. |
-| **Current code state**              | `state/*.md`                                | Reflects what **exists today** in the code. Updated **after** implementing changes. NOT a changelog (see rule below).             |
-| **Planning**                        | `roadmap/plans/*.md`                        | Detailed design referenced from the JSON (`detail`).                                                                              |
+| Category                             | Files                                       | Rule                                                                                                                                |
+| ------------------------------------ | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Project state (machine-readable)** | `roadmap/mvp-*.json` (active: `mvp-1.json`) | Source of truth for progress. The agent updates `status` per task. The % auto-computes in the dashboard — **never edited by hand**. |
+| **Current code state**               | `state/*.md`                                | Reflects what **exists today** in the code. Updated **after** implementing changes. NOT a changelog (see rule below).               |
+| **Planning**                         | `roadmap/plans/*.md`                        | Detailed design referenced from the JSON (`detail`).                                                                                |
 
 `index.md` is an index — only change it when adding/removing files.
 
@@ -47,8 +47,9 @@ current state without tying it to when it was done.
 ### After each sprint or dev session
 
 1. **Read the active MVP** to identify the tasks worked on.
-2. **Set `status`** for each verified task (`todo` → `done`, or `blocked` with reason). The % is
-   auto-computed — don't edit it by hand.
+2. **Set `status`** for each verified task via
+   `node harness/scripts/set-task-status.mjs <mvpFile> <taskId>=<status> …` (`todo` → `done`, or
+   `blocked` with reason). The % is auto-computed — don't edit it by hand.
 3. **Update the affected current-state docs** (`state/*.md`): endpoints, routes, entities, components,
    modules. Remove resolved tech debt.
 

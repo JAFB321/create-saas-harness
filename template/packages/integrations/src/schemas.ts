@@ -7,5 +7,3 @@ export const settleOrderInput = z.object({
   /** Provider processing fee in cents; null means "unknown" (don't overwrite a prior value). */
   feeCents: z.number().int().nullable().default(null),
 });
-
-export type SettleOrderInputParsed = z.infer<typeof settleOrderInput>;

@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { t } from "@/lib/i18n";
 import { type ItemActionState, createItemAction } from "../_actions";
 
 export function NewItemForm() {
@@ -15,9 +16,9 @@ export function NewItemForm() {
 
   return (
     <form ref={formRef} action={action} className="flex flex-col gap-2 sm:flex-row">
-      <Input name="title" placeholder="New item title" required className="sm:flex-1" />
+      <Input name="title" placeholder={t("items.newPlaceholder")} required className="sm:flex-1" />
       <Button type="submit" disabled={pending}>
-        {pending ? "…" : "Add"}
+        {pending ? "…" : t("items.add")}
       </Button>
       {state.error && <p className="text-sm text-red-600 sm:w-full">{state.error}</p>}
     </form>

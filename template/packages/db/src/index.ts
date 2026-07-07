@@ -6,13 +6,4 @@ export { createBrowserClient } from "./client-browser";
 export { createServerClient } from "./client-server";
 export { createServiceClient } from "./client-service";
 export { createMiddlewareClient } from "./client-middleware";
-export {
-  getPublicEnv,
-  getServiceEnv,
-  getAppBaseUrl,
-  cookieSecure,
-  publicEnvSchema,
-  serviceEnvSchema,
-} from "./env";
-
-export const DB_PACKAGE = "@app/db" as const;
+export { getPublicEnv, getServiceEnv, getAppBaseUrl, cookieSecure } from "./env";

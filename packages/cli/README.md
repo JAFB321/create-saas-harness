@@ -4,20 +4,20 @@ Scaffold a Next.js 15 + Supabase SaaS monorepo with a built-in, **agents-powered
 (orchestrator + subagents + roadmap + docs).
 
 ```bash
-npx create-saas-harness@latest
+npx create-saas-harness-new@latest
 ```
 
 It asks for a project name, target directory, and your stack — payments (**Stripe** or
 **MercadoPago**), storage (**Supabase Storage** or **S3-compatible**: R2/S3/MinIO), email
-(**Resend** or none for now), package manager — then copies the template, wires the chosen
-adapters, prunes everything you didn't pick (code, SDK deps, env vars), installs deps, and makes
-the **first commit**.
+(**Resend** or none for now) — then copies the template, wires the chosen adapters, prunes
+everything you didn't pick (code, SDK deps, env vars), installs deps, and makes the
+**first commit**. The workspace requires **pnpm** (`corepack enable pnpm`).
 
 Every prompt is also a flag, so it runs unattended:
 
 ```bash
-npx create-saas-harness@latest my-saas \
-  --payments stripe --storage supabase --email resend --pm pnpm -y
+npx create-saas-harness-new@latest my-saas \
+  --payments stripe --storage supabase --email resend -y
 ```
 
 | Flag                       | Values                          | Default        |
@@ -25,7 +25,6 @@ npx create-saas-harness@latest my-saas \
 | `--payments`               | `stripe` \| `mercadopago`       | `stripe`       |
 | `--storage`                | `supabase` \| `s3`              | `supabase`     |
 | `--email`                  | `resend` \| `none`              | `resend`       |
-| `--pm`                     | `pnpm` \| `npm` \| `yarn` \| `bun` | `pnpm`      |
 | `--name`                   | project name                    | directory name |
 | `--install` / `--no-install` | install dependencies          | install        |
 | `--git` / `--no-git`       | git init + first commit         | git            |

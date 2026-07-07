@@ -31,7 +31,8 @@ Steps:
 3. Read the active MVP roadmap: `harness/docs/roadmap/mvp-<n>.json` (`<n>` from step 0; default
    `mvp-1.json`). It is a local gitignored working file. If it does NOT exist, copy the template:
    `cp harness/docs/roadmap/mvp-example.json harness/docs/roadmap/mvp-<n>.json` and warn that you are
-   starting from an empty roadmap (or suggest running `/project-setup` first). Identify the active
+   starting from an empty roadmap (or suggest running `/project-setup` first). Run
+   `pnpm roadmap:validate` — fix schema errors before trusting the file. Identify the active
    sprint (first with `todo`/`doing` tasks) and the **next task** (first `todo` in order).
 4. Read the detail plan (`detail`) for that task/goal/sprint if it exists, in
    `harness/docs/roadmap/plans/`. If the next task has a `designRef`, read that design plan section
@@ -46,10 +47,12 @@ Steps:
    - `severity: "blocking"` questions **must** be answered before execution. For `default-ok`, an
      empty/"you decide" reply records the `default`.
    - If every question is already answered, say so and continue — never re-ask.
-   This is the single interrogation point: after the gate, execution runs autonomously (workflow.md
-   hard rule 5).
+     This is the single interrogation point: after the gate, execution runs autonomously (workflow.md
+     hard rule 5).
 6. Bring the env up: `pnpm up` (= `bash harness/scripts/dev-up.sh`).
-7. Baseline smoke: run `pnpm e2e` (or warn if the test foundation does not exist yet).
+7. Baseline smoke: run the critical-flow subset — `pnpm e2e e2e/critical-flow.spec.ts` — to confirm
+   we start from green (full `pnpm e2e` is for `/verify` and wrap, not every open). Warn if the test
+   foundation does not exist yet.
 
 At the end, report briefly: worktree/port if applicable, any decisions just captured at the gate,
 active sprint, current %, the suggested next task with its `verify` (`type` + `desc`), and whether the

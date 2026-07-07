@@ -12,7 +12,6 @@ import { ProviderConfigError, WebhookVerificationError } from "../errors";
 /**
  * MercadoPago's documented HMAC check: x-signature carries `ts=...,v1=...`; v1 is the
  * HMAC-SHA256 (hex) of `id:<data.id>;request-id:<x-request-id>;ts:<ts>;` with the webhook secret.
- * Skipped silently when MERCADOPAGO_WEBHOOK_SECRET is not set.
  */
 function verifySignature(req: Request, dataId: string, secret: string): void {
   const parts = new Map(
@@ -84,17 +83,23 @@ export class MercadoPagoProvider implements PaymentProvider {
     return { checkoutId: String(pref.id ?? ""), redirectUrl: pref.init_point ?? undefined };
   }
 
-  async parseWebhook(req: Request): Promise<ParsedWebhook> {
+  async parseWebhook(req: Request): Promise<ParsedWebhook | null> {
+    // Verification is NOT optional: without the secret an attacker could settle arbitrary orders
+    // by POSTing payment ids. Fail loudly instead of silently trusting the body.
+    const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
+    if (!secret) {
+      throw new ProviderConfigError(
+        "MERCADOPAGO_WEBHOOK_SECRET is required to verify webhooks for the MercadoPago provider.",
+      );
+    }
     const body = (await req.json().catch(() => ({}))) as {
       data?: { id?: string };
       type?: string;
     };
     const paymentId = body.data?.id;
-    if (!paymentId || body.type !== "payment") {
-      return { orderId: "", status: "failed", providerRef: "", method: "other", feeCents: null };
-    }
-    const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
-    if (secret) verifySignature(req, paymentId, secret);
+    // Non-payment topics (merchant_order, …) are ignorable.
+    if (!paymentId || body.type !== "payment") return null;
+    verifySignature(req, paymentId, secret);
     // Fetch the payment with our token to learn the order + status (don't trust the webhook body).
     const payment = await new Payment(this.client).get({ id: paymentId });
     const orderId = payment.external_reference ?? "";

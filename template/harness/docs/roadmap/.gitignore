@@ -1,7 +1,9 @@
 # mvp-*.json and detail plans are each dev's local working files (roadmap/sprints in progress).
-# By default they are NOT versioned — only the template (mvp-example.json) and the plans/.gitkeep are.
-# After `/project-setup` generates your roadmap, `git add -f` them if you want them committed.
+# By default they are NOT versioned — only the templates (mvp-example.json, plans/example-tagging.md)
+# and plans/.gitkeep are. After `/project-setup` generates your roadmap, `git add -f` them if you
+# want them committed.
 mvp-*.json
 !mvp-example.json
 plans/*.md
+!plans/example-tagging.md
 !plans/.gitkeep

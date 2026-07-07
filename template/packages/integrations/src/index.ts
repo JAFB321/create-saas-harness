@@ -12,7 +12,6 @@ export type {
   SendEmailResult,
   SignedUpload,
   SignedUrlOpts,
-  StorageObject,
 } from "./types";
 
 export {
@@ -27,8 +26,12 @@ export {
   selectStorageStatus,
   type IntegrationStatus,
 } from "./status";
-export { settleOrder, type SettleOrderInput, type SettleOrderResult, type OrderRow } from "./settle";
-export { settleOrderInput } from "./schemas";
+export {
+  settleOrder,
+  type SettleOrderInput,
+  type SettleOrderResult,
+  type OrderRow,
+} from "./settle";
 export { OrderNotFoundError, ProviderConfigError, WebhookVerificationError } from "./errors";
 export { logger } from "./logger";
 

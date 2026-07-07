@@ -13,65 +13,59 @@ import {
   type IntegrationStatus,
 } from "./status";
 
-let _payment: PaymentProvider | undefined;
-let _email: EmailProvider | undefined;
-let _storage: StorageProvider | undefined;
-
 // Mock-first: if the env requests a real provider but its keys are missing (or the requested name
 // is not the one wired at scaffold time), warn once and fall back to the mock — never crash.
-function warnIfFallback(integration: string, status: IntegrationStatus): void {
-  if (status.requested !== "mock") {
-    logger.warn("provider_fallback", {
-      integration,
-      requested: status.requested,
-      fallback: "mock",
-      reason: "provider not configured (missing keys or not the scaffold-time choice)",
-    });
-  }
+const resets: Array<() => void> = [];
+
+function memoizedProvider<T>(
+  integration: string,
+  selectStatus: () => IntegrationStatus,
+  makeMock: () => T,
+  makeReal: () => T,
+): () => T {
+  let cached: T | undefined;
+  resets.push(() => (cached = undefined));
+  return () => {
+    if (cached) return cached;
+    const status = selectStatus();
+    if (status.provider === "mock") {
+      if (status.requested !== "mock") {
+        logger.warn("provider_fallback", {
+          integration,
+          requested: status.requested,
+          fallback: "mock",
+          reason: "provider not configured (missing keys or not the scaffold-time choice)",
+        });
+      }
+      cached = makeMock();
+    } else {
+      cached = makeReal();
+    }
+    return cached;
+  };
 }
 
-/** Payments: mock by default. The scaffold-time provider activates only when its keys are present. */
-export function getPaymentProvider(): PaymentProvider {
-  if (_payment) return _payment;
-  const status = selectPaymentStatus();
-  if (status.provider === "mock") {
-    warnIfFallback("payment", status);
-    _payment = new MockPaymentProvider();
-  } else {
-    _payment = new RealPaymentProvider();
-  }
-  return _payment;
-}
-
-/** Email: mock by default. The scaffold-time provider activates only when its keys are present. */
-export function getEmailProvider(): EmailProvider {
-  if (_email) return _email;
-  const status = selectEmailStatus();
-  if (status.provider === "mock") {
-    warnIfFallback("email", status);
-    _email = new MockEmailProvider();
-  } else {
-    _email = new RealEmailProvider();
-  }
-  return _email;
-}
-
-/** Storage: mock by default. The scaffold-time provider activates only when its keys are present. */
-export function getStorageProvider(): StorageProvider {
-  if (_storage) return _storage;
-  const status = selectStorageStatus();
-  if (status.provider === "mock") {
-    warnIfFallback("storage", status);
-    _storage = new MockStorageProvider();
-  } else {
-    _storage = new RealStorageProvider();
-  }
-  return _storage;
-}
+/** Each getter: mock by default; the scaffold-time provider activates only when its keys are present. */
+export const getPaymentProvider = memoizedProvider<PaymentProvider>(
+  "payment",
+  selectPaymentStatus,
+  () => new MockPaymentProvider(),
+  () => new RealPaymentProvider(),
+);
+export const getEmailProvider = memoizedProvider<EmailProvider>(
+  "email",
+  selectEmailStatus,
+  () => new MockEmailProvider(),
+  () => new RealEmailProvider(),
+);
+export const getStorageProvider = memoizedProvider<StorageProvider>(
+  "storage",
+  selectStorageStatus,
+  () => new MockStorageProvider(),
+  () => new RealStorageProvider(),
+);
 
 /** TEST ONLY: clear memoized singletons. */
 export function resetProviders(): void {
-  _payment = undefined;
-  _email = undefined;
-  _storage = undefined;
+  for (const reset of resets) reset();
 }

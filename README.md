@@ -36,12 +36,11 @@ npx create-saas-harness-new@latest
 ## The experience
 
 1. **Scaffold.** `npx create-saas-harness-new@latest` asks the essentials (project name, payments,
-   storage, email, package manager), copies the template, assembles the chosen modules, installs
-   deps, and makes the **first commit**. Every prompt is also a flag, so the whole thing runs
-   unattended:
+   storage, email), copies the template, assembles the chosen modules, installs deps (pnpm), and
+   makes the **first commit**. Every prompt is also a flag, so the whole thing runs unattended:
 
    ```bash
-   npx create-saas-harness-new@latest my-saas --payments stripe --storage supabase --email resend --pm pnpm -y
+   npx create-saas-harness-new@latest my-saas --payments stripe --storage supabase --email resend -y
    ```
 
    Prefer clicking? Build your command visually at the **[configurator](./landing/)** (the Astro
@@ -60,8 +59,8 @@ a roadmap ready for agents to execute.
 
 ## Requirements
 
-- Node.js >= 20, pnpm (recommended), and an agent that supports custom commands/subagents
-  (Claude Code today).
+- Node.js >= 20, **pnpm** (required — the workspace uses `workspace:*`; `corepack enable pnpm`),
+  and an agent that supports custom commands/subagents (Claude Code today).
 - A Supabase project (or the local stack via the Supabase CLI). The app runs mock-first without
   any third-party keys.
 

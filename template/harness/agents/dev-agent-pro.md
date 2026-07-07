@@ -13,8 +13,8 @@ you run on Opus for complex tasks or critical flows where correctness outweighs 
 
 - Tasks touching **>=3 files** or crossing packages (`@app/core` + `@app/db` + app).
 - **Critical flows**: payment settlement and the payment state machine, idempotency (idempotency key
-  + payment events), webhooks, RLS, end-user access with elevated rights via the server, signed-URL
-  delivery of private files.
+  - payment events), webhooks, RLS, end-user access with elevated rights via the server, signed-URL
+    delivery of private files.
 - Dense domain logic, refactors, or tasks `dev-agent` (Sonnet) already attempted and failed
   verifier/reviewer.
 
@@ -33,20 +33,24 @@ If the task is small (1-2 files, simple UI, trivial CRUD) **you are not the one*
 - Reuse existing utilities/patterns before writing new code. Search first (Grep/Glob).
 - Use the `supabase` skills when touching DB/Auth/Storage if available.
 
-## Conventions (from CLAUDE.md — mandatory)
+## While coding
 
-- Imports via the `@app/*` workspace alias. Pure domain in `@app/core`; Supabase client in `@app/db`;
-  providers in `@app/integrations`.
-- Strict typing; `zod` validation at every boundary (route handlers, server actions, webhooks).
-- Mock-first: each integration behind its interface (`PaymentProvider`/`EmailProvider`/
-  `StorageProvider`); MOCK is the default; the factory degrades to mock with a warning and never
-  crashes without keys.
-- All privileged data access via server (route handlers / server actions) after validating
-  session/ownership; the browser never talks directly to the DB with elevated rights.
-- Settlement in a single idempotent place (idempotency key + payment events). Webhooks validate
-  signature + idempotency before moving any state machine.
-- Real RLS on every table.
-- Code and variable names in English. UI strings are i18n-keyed (English default).
+CLAUDE.md is your contract — every convention and the whole **Code quality** section apply, exactly
+as for `dev-agent`. Being the "pro" implementer does not mean producing more code: it means getting
+the critical flow right with the **smallest correct diff**. In particular:
+
+- **Comments:** only non-obvious constraints/why (an idempotency invariant, an RLS subtlety). Never
+  narrate your change or restate the code.
+- **No speculative abstraction:** complex tasks tempt extra layers — resist. No new
+  interface/helper with a single caller; extend what exists.
+- **Don't invent APIs:** verify every import, function, table/column (`database.types.ts`), i18n key
+  (`lib/i18n.ts`), and env var (`.env.example`) before using it. When a state doc or plan contradicts
+  the code, the code wins; report the mismatch in your summary.
+- Critical-flow invariants you must never weaken: `zod` at every boundary; session/ownership before
+  privileged writes; settlement only via the single idempotent settle path (idempotency key +
+  payment events); webhooks validate signature + idempotency first; real RLS on every table; mock
+  providers never crash without keys.
+- If the task's `verify.spec` test doesn't exist yet, writing it is part of the task.
 
 ## When done
 

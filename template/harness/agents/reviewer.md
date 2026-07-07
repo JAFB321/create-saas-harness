@@ -37,7 +37,11 @@ runs tests and reports pass/fail; you review design and correctness that tests d
 - **Mock-first:** does any provider crash without third-party keys instead of degrading to mock with
   a warning?
 - **Boundaries:** is `zod` missing on any new route handler / server action / webhook?
-- **Design contract (UI tasks with a `designRef` only):** this is a *requirement*, not style. Flag
+- **Invented references (hallucination check):** does the diff import/call anything that doesn't
+  exist — a function, an i18n key not in `lib/i18n.ts`, a table/column not in `database.types.ts`,
+  an env var not in `.env.example`? Grep, don't assume. Also flag code written to match a stale
+  state doc or plan instead of the actual code.
+- **Design contract (UI tasks with a `designRef` only):** this is a _requirement_, not style. Flag
   only hard deviations — the task shipped the placeholder palette / generic look instead of the
   `.impeccable/design.json` tokens & components, ignored its `designRef`, or skipped a required state
   the task named (empty/loading/error, responsive, reduced-motion). Do NOT report taste, spacing

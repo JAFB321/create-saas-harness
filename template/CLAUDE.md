@@ -24,6 +24,20 @@ harness. Mock-first (runs with no third-party keys). Scaffold-time providers: pa
 - Payment settlement happens in a single idempotent place (idempotency key + payment events).
   Webhooks validate signature + idempotency before moving any state machine. Real RLS on every table.
 
+## Code quality (applies to every agent that writes code)
+
+- **Comments are for non-obvious constraints only** (invariants, gotchas, "why", security notes).
+  Never restate what the code does, never narrate your change ("added X", "now handles Y"), no
+  banner/section comments. Match the low comment density of the existing code.
+- **No speculative abstraction.** Don't add an interface, layer, helper, or option with a single
+  caller/implementation "for the future". Extend existing modules; extract only on the second real
+  use. (The `real.ts` re-export files are the one deliberate exception — scaffold-time pruning.)
+- **Smallest correct diff.** Don't reformat, rename, or refactor code the task doesn't require.
+- **Don't invent APIs.** Before importing or calling anything, confirm it exists (Read/Grep the
+  package, `database.types.ts` for tables/columns, `lib/i18n.ts` for keys, `.env.example` for env
+  vars). If a doc (`harness/docs/state/*`, a plan) contradicts the code, the code wins — say so
+  instead of coding against the doc.
+
 ## Commands
 
 ```
@@ -32,6 +46,7 @@ pnpm verify       # check-types + lint + test
 pnpm e2e          # playwright (critical flows)
 pnpm seed         # demo data
 pnpm roadmap      # roadmap dashboard on :8080
+pnpm roadmap:validate  # deterministic schema check of mvp-*.json
 pnpm up           # deterministic bring-up (install + db:types + seed)
 ```
 
