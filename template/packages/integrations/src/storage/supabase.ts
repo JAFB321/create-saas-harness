@@ -1,18 +1,11 @@
 import { createServiceClient } from "@app/db";
-import type {
-  SignedUpload,
-  SignedUrlOpts,
-  StorageObject,
-  StorageProvider,
-} from "../types";
+import type { SignedUpload, SignedUrlOpts, StorageProvider } from "../types";
 import { ProviderConfigError } from "../errors";
 
 /** Env value that selects this provider + its readiness check (used by status.ts). */
 export const PROVIDER_NAME = "supabase";
 export function isConfigured(): boolean {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY,
-  );
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
 /**
@@ -74,31 +67,5 @@ export class SupabaseStorageProvider implements StorageProvider {
     // remove() is idempotent: missing objects are simply absent from the result.
     const { error } = await this.from().remove([path]);
     if (error) throw new Error(`Supabase storage: delete failed: ${error.message}`);
-  }
-
-  async statObject(path: string): Promise<{ size: number; lastModified: string } | null> {
-    const cut = path.lastIndexOf("/");
-    const folder = cut === -1 ? "" : path.slice(0, cut);
-    const name = cut === -1 ? path : path.slice(cut + 1);
-    const { data, error } = await this.from().list(folder, { search: name });
-    if (error || !data) return null;
-    const found = data.find((o) => o.name === name);
-    if (!found) return null;
-    return {
-      size: Number(found.metadata?.size ?? 0),
-      lastModified: found.updated_at ?? found.created_at ?? new Date().toISOString(),
-    };
-  }
-
-  async listObjects(prefix: string): Promise<StorageObject[]> {
-    const folder = prefix.replace(/\/+$/, "");
-    const { data, error } = await this.from().list(folder);
-    if (error || !data) return [];
-    return data
-      .filter((o) => o.id !== null) // folder placeholders come back with a null id
-      .map((o) => ({
-        path: folder ? `${folder}/${o.name}` : o.name,
-        createdAt: o.created_at ?? new Date().toISOString(),
-      }));
   }
 }

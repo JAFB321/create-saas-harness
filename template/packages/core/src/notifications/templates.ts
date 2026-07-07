@@ -2,7 +2,7 @@
  * Transactional email templates. Keep them pure (string in, string out) so providers (mock/Resend)
  * just transport the rendered output. Add templates as your product needs them.
  */
-export type EmailTemplate = "welcome" | "payment_receipt" | "subscription_started";
+export type EmailTemplate = "welcome" | "payment_receipt";
 
 export interface RenderedEmail {
   subject: string;
@@ -44,12 +44,6 @@ export function renderEmail(template: EmailTemplate, vars: Record<string, string
         subject: `Your receipt`,
         html: layout("Payment received", `<p>We received your payment of ${h.amount ?? ""}.</p>`),
         text: `Payment received: ${vars.amount ?? ""}.`,
-      };
-    case "subscription_started":
-      return {
-        subject: `Your ${vars.plan ?? ""} subscription is active`,
-        html: layout("Subscription active", `<p>Your ${h.plan ?? ""} plan is now active.</p>`),
-        text: `Your ${vars.plan ?? ""} plan is now active.`,
       };
   }
 }

@@ -72,6 +72,3 @@ export function getAppBaseUrl(): string {
 export function cookieSecure(): boolean {
   return process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview";
 }
-
-export const publicEnvSchema = publicSchema;
-export const serviceEnvSchema = serviceSchema;

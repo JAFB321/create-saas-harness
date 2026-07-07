@@ -41,7 +41,7 @@ export default async function ItemsPage() {
                 <form action={deleteItemAction}>
                   <input type="hidden" name="id" value={item.id} />
                   <Button variant="ghost" type="submit" className="h-8 px-2 text-sm text-red-600">
-                    Delete
+                    {t("items.delete")}
                   </Button>
                 </form>
               </Card>

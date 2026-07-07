@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { canSettle, formatMoney, nextOrderStatus, type PaymentMethod } from "@app/core";
+import { canSettle, formatMoney, nextOrderStatus } from "@app/core";
 import { createServiceClient, type Tables } from "@app/db";
 import { settleOrderInput } from "./schemas";
 import { OrderNotFoundError } from "./errors";
@@ -8,13 +8,7 @@ import { logger } from "./logger";
 
 export type OrderRow = Tables<"orders">;
 
-export interface SettleOrderInput {
-  status: "paid" | "failed" | "expired";
-  method: PaymentMethod;
-  providerRef: string;
-  /** Provider fee in cents; optional. Only persisted when non-null (doesn't overwrite on re-delivery). */
-  feeCents?: number | null;
-}
+export type SettleOrderInput = z.input<typeof settleOrderInput>;
 
 export interface SettleOrderResult {
   order: OrderRow;
@@ -33,9 +27,8 @@ export async function settleOrder(
   orderId: string,
   input: SettleOrderInput,
 ): Promise<SettleOrderResult> {
-  // 1. UUID guard at the choke-point: real webhooks pass the provider's external reference RAW
-  //    (may be empty or non-UUID). Validate BEFORE touching the DB and map to OrderNotFoundError
-  //    (the route then 200-ignores), so a poisoned webhook doesn't 500 and get retried forever.
+  // Real webhooks pass the provider's external reference RAW (may be empty or non-UUID).
+  // Map to OrderNotFoundError (the route 200-ignores) so a poisoned webhook isn't retried forever.
   if (!z.string().uuid().safeParse(orderId).success) {
     logger.warn("settle_invalid_order_ref", { len: orderId?.length ?? 0 });
     throw new OrderNotFoundError(orderId);
@@ -44,7 +37,6 @@ export async function settleOrder(
   const parsed = settleOrderInput.parse(input);
   const db = createServiceClient();
 
-  // 2. Read the order.
   const { data: current, error: readErr } = await db
     .from("orders")
     .select("*")
@@ -53,7 +45,7 @@ export async function settleOrder(
   if (readErr) throw readErr;
   if (!current) throw new OrderNotFoundError(orderId);
 
-  // 3. Always audit (best-effort; a failed audit must not abort the settle).
+  // Audit is best-effort; a failed audit must not abort the settle.
   const { error: auditErr } = await db.from("payment_events").insert({
     order_id: orderId,
     type: `settle:${parsed.status}`,
@@ -63,13 +55,12 @@ export async function settleOrder(
     logger.error("settle_audit_failed", { orderId, error: auditErr.message });
   }
 
-  // 4. Non-applicable transition -> idempotent no-op.
   if (!canSettle(current.status, parsed.status)) {
     return { order: current, alreadySettled: true };
   }
 
-  // 5. Conditional UPDATE (race safety). For `paid`, allow rescuing from pending|failed|expired but
-  //    EXCLUDE `paid` so only the first concurrent webhook fulfills. `fee_cents` only when non-null.
+  // Conditional UPDATE: for `paid`, rescue from pending|failed|expired but EXCLUDE `paid` from the
+  // filter so only the first concurrent webhook fulfills.
   const next = nextOrderStatus(current.status, parsed.status);
   const update = db
     .from("orders")
@@ -95,7 +86,7 @@ export async function settleOrder(
     return { order: reread ?? current, alreadySettled: true };
   }
 
-  // 6. First effective step to `paid`: fulfill (send a receipt). Best-effort — never reverts payment.
+  // First effective step to `paid` fulfills (receipt). Best-effort — never reverts payment.
   if (parsed.status === "paid" && updated.user_id) {
     try {
       const { data: profile } = await db

@@ -25,10 +25,10 @@ export default async function BillingPage() {
               <div>
                 <p className="text-lg font-semibold">{plan.name}</p>
                 <p className="text-2xl font-bold">
-                  {plan.priceCents === 0 ? "Free" : formatMoney(plan.priceCents)}
+                  {plan.priceCents === 0 ? t("billing.free") : formatMoney(plan.priceCents)}
                   {plan.priceCents > 0 && (
                     <span className="text-sm font-normal text-[var(--color-muted-foreground)]">
-                      /mo
+                      {t("billing.perMonth")}
                     </span>
                   )}
                 </p>
@@ -40,7 +40,7 @@ export default async function BillingPage() {
               </ul>
               {isCurrent ? (
                 <Button variant="secondary" disabled>
-                  Current
+                  {t("billing.current")}
                 </Button>
               ) : plan.priceCents === 0 ? (
                 <Button variant="secondary" disabled>

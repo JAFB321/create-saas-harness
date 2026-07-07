@@ -5,6 +5,8 @@ import { z } from "zod";
 import { canCreateItem, createItemSchema } from "@app/core";
 import { createServerClient } from "@app/db";
 import { requireUser } from "@/lib/auth";
+import { countItemsFor } from "@/lib/items";
+import { t } from "@/lib/i18n";
 
 export interface ItemActionState {
   error?: string;
@@ -23,13 +25,9 @@ export async function createItemAction(
 
   const supabase = await createServerClient();
   // Count-then-insert is race-prone (fine for a template); revenue-gating limits belong in the DB.
-  const { count } = await supabase
-    .from("items")
-    .select("id", { count: "exact", head: true })
-    .eq("owner_id", user.id);
-
-  if (!canCreateItem(user.profile?.plan, count ?? 0)) {
-    return { error: "You've reached your plan's item limit. Upgrade to add more." };
+  const count = await countItemsFor(supabase, user.id);
+  if (!canCreateItem(user.profile?.plan, count)) {
+    return { error: t("items.limitReached") };
   }
 
   const { error } = await supabase

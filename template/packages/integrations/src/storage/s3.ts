@@ -1,18 +1,11 @@
 import {
   DeleteObjectCommand,
   GetObjectCommand,
-  HeadObjectCommand,
-  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import type {
-  SignedUpload,
-  SignedUrlOpts,
-  StorageObject,
-  StorageProvider,
-} from "../types";
+import type { SignedUpload, SignedUrlOpts, StorageProvider } from "../types";
 import { ProviderConfigError } from "../errors";
 
 /** Env value that selects this provider + its readiness check (used by status.ts). */
@@ -20,9 +13,9 @@ export const PROVIDER_NAME = "s3";
 export function isConfigured(): boolean {
   return Boolean(
     process.env.S3_ENDPOINT &&
-      process.env.S3_ACCESS_KEY_ID &&
-      process.env.S3_SECRET_ACCESS_KEY &&
-      process.env.S3_BUCKET,
+    process.env.S3_ACCESS_KEY_ID &&
+    process.env.S3_SECRET_ACCESS_KEY &&
+    process.env.S3_BUCKET,
   );
 }
 
@@ -94,27 +87,5 @@ export class S3StorageProvider implements StorageProvider {
 
   async deleteObject(path: string): Promise<void> {
     await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: path }));
-  }
-
-  async statObject(path: string): Promise<{ size: number; lastModified: string } | null> {
-    try {
-      const res = await this.client.send(new HeadObjectCommand({ Bucket: this.bucket, Key: path }));
-      return {
-        size: res.ContentLength ?? 0,
-        lastModified: (res.LastModified ?? new Date()).toISOString(),
-      };
-    } catch {
-      return null;
-    }
-  }
-
-  async listObjects(prefix: string): Promise<StorageObject[]> {
-    const res = await this.client.send(
-      new ListObjectsV2Command({ Bucket: this.bucket, Prefix: prefix }),
-    );
-    return (res.Contents ?? []).map((o) => ({
-      path: o.Key ?? "",
-      createdAt: (o.LastModified ?? new Date()).toISOString(),
-    }));
   }
 }

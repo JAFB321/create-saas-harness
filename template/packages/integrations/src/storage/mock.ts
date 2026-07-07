@@ -1,9 +1,4 @@
-import type {
-  SignedUpload,
-  SignedUrlOpts,
-  StorageObject,
-  StorageProvider,
-} from "../types";
+import type { SignedUpload, SignedUrlOpts, StorageProvider } from "../types";
 
 /**
  * Mock storage provider — the default. Keeps objects in an in-memory map so the app runs with no
@@ -27,25 +22,13 @@ export class MockStorageProvider implements StorageProvider {
   }
 
   async signedUrl(path: string, _ttlSeconds: number, opts?: SignedUrlOpts): Promise<string> {
-    const dl = opts?.downloadFilename ? `?download=${encodeURIComponent(opts.downloadFilename)}` : "";
+    const dl = opts?.downloadFilename
+      ? `?download=${encodeURIComponent(opts.downloadFilename)}`
+      : "";
     return `mock://get/${encodeURIComponent(path)}${dl}`;
   }
 
   async deleteObject(path: string): Promise<void> {
     this.store.delete(path);
-  }
-
-  async statObject(path: string): Promise<{ size: number; lastModified: string } | null> {
-    const obj = this.store.get(path);
-    if (!obj) return null;
-    return { size: obj.buf.byteLength, lastModified: obj.createdAt };
-  }
-
-  async listObjects(prefix: string): Promise<StorageObject[]> {
-    const out: StorageObject[] = [];
-    for (const [path, obj] of this.store) {
-      if (path.startsWith(prefix)) out.push({ path, createdAt: obj.createdAt });
-    }
-    return out;
   }
 }

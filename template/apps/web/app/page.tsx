@@ -15,9 +15,7 @@ export default function LandingPage() {
           <Button variant="secondary">{t("auth.login")}</Button>
         </Link>
       </div>
-      <p className="text-sm text-[var(--color-muted-foreground)]">
-        Built with create-saas-harness · runs mock-first
-      </p>
+      <p className="text-sm text-[var(--color-muted-foreground)]">{t("landing.footnote")}</p>
     </main>
   );
 }

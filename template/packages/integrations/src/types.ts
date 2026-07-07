@@ -13,7 +13,6 @@ export interface CreateCheckoutInput {
   successUrl?: string;
   cancelUrl?: string;
   customerEmail?: string;
-  metadata?: Record<string, unknown>;
 }
 
 export interface CreateCheckoutResult {
@@ -33,8 +32,12 @@ export interface ParsedWebhook {
 
 export interface PaymentProvider {
   createCheckout(input: CreateCheckoutInput): Promise<CreateCheckoutResult>;
-  /** Verify + parse an incoming webhook into a normalized settlement intent. */
-  parseWebhook(req: Request): Promise<ParsedWebhook>;
+  /**
+   * Verify + parse an incoming webhook into a normalized settlement intent.
+   * Returns null for verified-but-ignorable events (unhandled types, async-pending);
+   * throws WebhookVerificationError when verification fails.
+   */
+  parseWebhook(req: Request): Promise<ParsedWebhook | null>;
 }
 
 // ---------------------------------------------------------------------------
@@ -65,20 +68,20 @@ export interface SignedUpload {
   signedUrl: string;
 }
 
-export interface StorageObject {
-  path: string;
-  createdAt: string;
-}
-
 export interface SignedUrlOpts {
   /** Force `Content-Disposition: attachment; filename="<safe>"`. */
   downloadFilename?: string;
   contentType?: string;
 }
 
+/** The minimal private-file surface. Add stat/list/etc. on your adapter when a feature needs them. */
 export interface StorageProvider {
   /** Signed URL to upload (PUT) an object to "<bucket>/<key>" directly from the browser. */
-  createSignedUploadUrl(key: string, contentType?: string, ttlSeconds?: number): Promise<SignedUpload>;
+  createSignedUploadUrl(
+    key: string,
+    contentType?: string,
+    ttlSeconds?: number,
+  ): Promise<SignedUpload>;
   /** Write/overwrite bytes at an exact "<bucket>/<key>" (server-side). */
   putObject(path: string, buf: Buffer, contentType: string): Promise<void>;
   /** Download an object at "<bucket>/<key>" as a Buffer. */
@@ -87,8 +90,4 @@ export interface StorageProvider {
   signedUrl(path: string, ttlSeconds: number, opts?: SignedUrlOpts): Promise<string>;
   /** Delete an object. Idempotent (no throw if missing). */
   deleteObject(path: string): Promise<void>;
-  /** Object metadata, or null if it does not exist. */
-  statObject(path: string): Promise<{ size: number; lastModified: string } | null>;
-  /** List objects under "<bucket>/<keyPrefix>" (one level). */
-  listObjects(prefix: string): Promise<StorageObject[]>;
 }

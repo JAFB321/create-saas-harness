@@ -29,26 +29,28 @@ Each work session is four steps:
 ## Running the app
 
 ```bash
-pnpm install     # once
-pnpm dev         # http://localhost:3000 — runs mock-first, no third-party keys needed
-pnpm verify      # types + lint + unit tests
-pnpm e2e         # end-to-end tests
+pnpm install                  # once
+cp .env.example .env.local    # once — Supabase URL + keys go here (see below)
+pnpm dev                      # http://localhost:3000
+pnpm verify                   # types + lint + unit tests
+pnpm e2e                      # end-to-end tests
 ```
 
-Payments, email, and storage run **mock-first** (no keys needed). Supabase (auth + Postgres) is the
-backend — set your Supabase URL + keys in `.env.local` (a hosted project or `supabase start`). Add
-real payment/email/storage keys later when you want them. See `.env.example`.
+Supabase (auth + Postgres) is the one required backend: put its URL + keys in `.env.local` — from a
+hosted project, or locally with `supabase start` (needs the Supabase CLI + Docker). Payments, email,
+and storage run **mock-first** (no keys needed); add real provider keys later when you want them.
+See `.env.example`.
 
 ## Where things live
 
-| You want…                 | Look in                                |
-| ------------------------- | -------------------------------------- |
-| Why/what of the product   | `FOUNDATIONS/` + `PRODUCT.md`          |
-| The design system (UI)    | `.impeccable/design.json` + `DESIGN.md` |
-| The plan / progress       | `harness/docs/roadmap/` (`pnpm roadmap`) |
-| How the harness works     | `harness/docs/workflow.md`             |
-| What the code is today    | `harness/docs/state/`                  |
-| Project conventions       | `CLAUDE.md`                            |
+| You want…               | Look in                                  |
+| ----------------------- | ---------------------------------------- |
+| Why/what of the product | `FOUNDATIONS/` + `PRODUCT.md`            |
+| The design system (UI)  | `.impeccable/design.json` + `DESIGN.md`  |
+| The plan / progress     | `harness/docs/roadmap/` (`pnpm roadmap`) |
+| How the harness works   | `harness/docs/workflow.md`               |
+| What the code is today  | `harness/docs/state/`                    |
+| Project conventions     | `CLAUDE.md`                              |
 
 ## Two hard rules
 

@@ -23,7 +23,8 @@ export class StripePaymentProvider implements PaymentProvider {
 
   constructor() {
     const key = process.env.STRIPE_SECRET_KEY;
-    if (!key) throw new ProviderConfigError("STRIPE_SECRET_KEY is required for the Stripe provider.");
+    if (!key)
+      throw new ProviderConfigError("STRIPE_SECRET_KEY is required for the Stripe provider.");
     this.stripe = new Stripe(key);
   }
 
@@ -50,7 +51,7 @@ export class StripePaymentProvider implements PaymentProvider {
     return { checkoutId: session.id, redirectUrl: session.url ?? undefined };
   }
 
-  async parseWebhook(req: Request): Promise<ParsedWebhook> {
+  async parseWebhook(req: Request): Promise<ParsedWebhook | null> {
     const secret = process.env.STRIPE_WEBHOOK_SECRET;
     if (!secret) throw new ProviderConfigError("STRIPE_WEBHOOK_SECRET is required.");
     const sig = req.headers.get("stripe-signature") ?? "";
@@ -68,10 +69,8 @@ export class StripePaymentProvider implements PaymentProvider {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       // Async methods (SEPA, OXXO, …) complete with payment_status "unpaid" — that's NOT a
-      // failure; the async_payment_* events below deliver the real outcome. No-op it.
-      if (session.payment_status !== "paid") {
-        return { orderId: "", status: "failed", providerRef: session.id, method: "other", feeCents: null };
-      }
+      // failure; the async_payment_* events below deliver the real outcome.
+      if (session.payment_status !== "paid") return null;
       return {
         orderId: session.metadata?.orderId ?? session.client_reference_id ?? "",
         status: "paid",
@@ -103,7 +102,7 @@ export class StripePaymentProvider implements PaymentProvider {
         feeCents: null,
       };
     }
-    // Unhandled event types resolve to a no-op the route can 200-ignore.
-    return { orderId: "", status: "failed", providerRef: event.id, method: "other", feeCents: null };
+    // Unhandled event types are ignorable.
+    return null;
   }
 }
