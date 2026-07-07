@@ -94,6 +94,24 @@ scaffolded copies of BOTH extreme combos (stripe/supabase/resend/pnpm and mercad
 - Vercel project for `landing/` (import repo, Root Directory = `landing/`).
 - e2e (`template/e2e/critical-flow.spec.ts`) still needs a live Supabase to run.
 
+## Publishing to npm (CI)
+
+`.github/workflows/publish.yml` publishes `packages/cli` to npm. Flow:
+
+1. Bump `packages/cli/package.json` `version`.
+2. Tag + push: `git tag v<version> && git push origin v<version>` (the workflow fails if the tag
+   doesn't match the package version, and no-ops if that version is already on npm). It can also be
+   run manually (workflow_dispatch).
+3. Requires the **`NPM_TOKEN` repo secret** (npm automation token) — the root `.npmrc` reads it via
+   `${NPM_TOKEN}`. Never put a literal token in `.npmrc`; it's a tracked file.
+
+The published name is **`create-saas-harness-new`** (the `name` field): the canonical
+`create-saas-harness` was unpublished (2026-07-01) and npm blocks name reuse for a while. To reclaim
+it later: change `name` back, publish, then `npm deprecate create-saas-harness-new` and flip
+`PKG_NAME` in `landing/src/lib/site.ts`. `prepack` bundles `template/` into the tarball
+(`lib/sync-template.mjs`), so the tag must be cut from a commit where `template/` is in the state
+you want to ship.
+
 ## How to verify (quickest path)
 
 ```bash
