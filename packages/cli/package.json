@@ -1,6 +1,6 @@
 {
   "name": "create-saas-harness-new",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Scaffold a Next.js + Supabase SaaS monorepo with a built-in, agents-powered dev harness.",
   "license": "MIT",
   "type": "module",
